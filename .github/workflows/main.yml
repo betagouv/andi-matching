@@ -1,0 +1,15 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: peaceiris/actions-pipenv@3.7
+    - name: Run Tests
+      run: |
+        make install
+        make tests
