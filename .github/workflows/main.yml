@@ -11,5 +11,7 @@ jobs:
     - uses: peaceiris/actions-pipenv@3.7
     - name: Run Tests
       run: |
+        pipenv sync --dev
+        ls
         make install
         make tests
