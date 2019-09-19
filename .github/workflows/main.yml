@@ -12,11 +12,17 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
+    - name: test
+      run : |
+        ls | xargs echo
+        pwd
+        echo "coucou test"
     - name: Install deps
       run : |
-        ls
-        pwd
+        cd /
+        cat Pipfile.lock
         pip install --upgrade pip pipenv
+        echo "pip install done"
         pipenv sync --dev
     - name: Run Tests
       run: |
