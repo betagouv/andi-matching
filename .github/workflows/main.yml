@@ -20,7 +20,4 @@ jobs:
         pipenv graph
     - name: Run Tests
       run: |
-        pipenv sync --dev
-        ls
-        make install
         make tests
