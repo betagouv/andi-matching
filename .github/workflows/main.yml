@@ -14,9 +14,9 @@ jobs:
         python-version: 3.7
     - name: Install deps
       run : |
-        pip install --upgrade pip pipenv
         ls
         pwd
+        pip install --upgrade pip pipenv
         pipenv sync --dev
     - name: Run Tests
       run: |
