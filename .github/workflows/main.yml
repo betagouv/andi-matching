@@ -8,22 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - uses: actions/checkout@v1
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
-    - name: test
-      run : |
-        ls | xargs echo
-        pwd
-        echo "coucou test"
     - name: Install deps
       run : |
-        cd /
-        cat Pipfile.lock
         pip install --upgrade pip pipenv
-        echo "pip install done"
         pipenv sync --dev
+        pipenv graph
     - name: Run Tests
       run: |
         pipenv sync --dev
