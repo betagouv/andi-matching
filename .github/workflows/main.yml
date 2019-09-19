@@ -8,7 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: peaceiris/actions-pipenv@3.7
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install deps
+      run : |
+        pip install --upgrade pip pipenv
+        pipenv sync --dev
     - name: Run Tests
       run: |
         pipenv sync --dev
