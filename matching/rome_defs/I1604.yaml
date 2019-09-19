@@ -1,0 +1,22 @@
+rome: 'I1604'
+desc: 'Mécanique automobile et entretien de véhicules'
+naf_domains_principal:
+  - '29' # Industrie automobile
+  - '45' # Commerce et réparation automobiles et motocycles
+  - '49' # Transports terresters et transport par conduites
+
+naf_domains_secondary:
+  - '71' # Activités d'architecture et d'ingénierie; activités de contrôle et analyses techniques
+  # - '93' # Activités sportives, récréatives et de loisirs
+naf_principal:
+  - '2910Z'  # Construction de véhicules automobiles
+  - '2931Z' # Fabrication d'équipements électriques et électroniques automobiles
+  - '2932Z' # Fabrication d'autres équipements automobiles
+  - '4520A' # Entretien et réparation de véhicules automobiles légers
+  - '4520B' # Entretien et réparation d'autres véhicules automobiles
+# naf_secondary:
+naf_of_interest:
+  - '3317Z' #	Réparation et maintenance d'autres équipements de transport
+
+# linked_romes:
+#

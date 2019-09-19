@@ -1,0 +1,4 @@
+*.csv
+credentials.json
+*.pickle
+config.yaml
