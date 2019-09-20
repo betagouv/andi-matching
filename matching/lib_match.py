@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
 logger.addHandler(logging.StreamHandler())
 
-MAX_VALUE_GROUP = '3'
+MAX_VALUE_GROUP = '5'
 
 
 # ##################################################################### HELPERS
@@ -239,7 +239,7 @@ def get_size_rules(tpe, pme, eti, ge):
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *args, **kwargs):
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, *args, **kwargs):
     if max_distance == '':
         max_distance = 10
 
@@ -277,7 +277,13 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *
         data = {
             'lat': lat,
             'lon': lon,
-            'dist': max_distance
+            'dist': max_distance,
+            'mul_geo': multipliers['fg'],
+            'mul_naf': multipliers['fn'],
+            'mul_siz': multipliers['ft'],
+            'mul_wel': multipliers['fw'],
+            'mul_con': multipliers['fc'],
+
         }
         sql = cur.mogrify(MATCH_QUERY.format(
             naf_rules=naf_sql,
@@ -290,6 +296,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *
 
     for row in result:
         # row['google_url'] = ''.join(['https://google.fr/search?q=', quote_plus(row['nom']), quote_plus(row['departement'])])
+        row['andi_fiche'] = ''.join(['https://andi.beta.gouv.fr:4430/company/browse/', str(row['id'])])
         row['google_search'] = ''.join([
             'https://google.fr/search?q=',
             quote_plus(row['nom'].lower()),
