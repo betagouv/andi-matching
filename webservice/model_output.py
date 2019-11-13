@@ -87,4 +87,4 @@ class Model(BaseModel):
     query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
     session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
     trace: str = Schema(..., alias='_trace', description="Trace ID")
-    data = List[ResponseData] = Schema(..., description="response data")
+    data: List[ResponseData] = Schema(..., description="response data")

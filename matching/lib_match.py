@@ -8,7 +8,8 @@ import psycopg2
 import yaml
 from psycopg2.extras import RealDictCursor
 
-from sql import MATCH_QUERY
+from . import sql as SQLLIB
+# from sql import MATCH_QUERY
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
@@ -279,7 +280,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *
             'lon': lon,
             'dist': max_distance
         }
-        sql = cur.mogrify(MATCH_QUERY.format(
+        sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
             naf_rules=naf_sql,
             size_rules=size_sql,
             limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''

@@ -11,5 +11,7 @@ flake8:
 pylint:
 	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint --rcfile=.pylintrc '{}' +
 
+serve:
+	export PYTHONPATH=$PYTHONPATH:./ && pipenv run ./webservice/main.py
 isort:
 	pipenv run isort

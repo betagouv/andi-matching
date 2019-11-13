@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from fastapi import FastAPI
 from model_output import Model as ResponseModel
 from model_input import Model as QueryModel
@@ -10,12 +11,12 @@ import os
 
 # ################################################### SETUP AND ARGUMENT PARSING
 # ##############################################################################
-def cfg_get(config=''):
+def cfg_get(config=None):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     defpath = f'{current_dir}/config.default.yaml'
     optpath = f'{current_dir}/{config}'
     def_config_file = open(defpath, 'r')
-    opt_config_file = open(optpath, 'r') if os.path.exists(optpath) else None
+    opt_config_file = open(optpath, 'r') if config else None
     def_config = yaml.safe_load(def_config_file)
     config = {} if not opt_config_file else yaml.safe_load(opt_config_file)
     return {**def_config, **config}
@@ -26,8 +27,8 @@ logger.setLevel(logging.getLevelName('INFO'))
 logger.addHandler(logging.StreamHandler())
 
 parser = argparse.ArgumentParser(description='Matching server process')
-parser.add_argument('--config', dest='config', description='config file', default='')
-parser.add_argument('--debug', dest='debug', action='store_true', default=False, description='Debug mode')
+parser.add_argument('--config', dest='config', help='config file', default=None)
+parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
 args = parser.parse_args()
 
 if args.debug:
