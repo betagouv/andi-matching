@@ -18,6 +18,7 @@ google-auth-oauthlib = "*"
 unidecode = "*"
 fastapi = "*"
 uvicorn = "*"
+pytz = "*"
 
 [requires]
 python_version = "3.7"
