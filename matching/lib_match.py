@@ -8,7 +8,9 @@ import psycopg2
 import yaml
 from psycopg2.extras import RealDictCursor
 
-from sql import MATCH_QUERY
+from . import sql as SQLLIB
+
+# from sql import MATCH_QUERY
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
@@ -63,7 +65,7 @@ def parse_rome_size_prefs(rome_defs, tpe, pme, eti, ge):
     return base.values()
 
 
-def parse_naf_list(naf_defs, include=None, exclude=None):
+def parse_naf_list(naf_defs, include=None, exclude=None):  # pylint: disable=too-many-branches
     include = set() if not include else include
     exclude = set() if not exclude else exclude
 
@@ -72,11 +74,11 @@ def parse_naf_list(naf_defs, include=None, exclude=None):
 
     [codes[MAX_VALUE_GROUP].add(naf) for naf in include]
 
-    def clean(l, n):
-        if n in l:
-            l.remove(n)
+    # def clean(l, n):
+    #     if n in l:
+    #         l.remove(n)
 
-    for rome, d in naf_defs.items():
+    for _rome, d in naf_defs.items():
         vgroup = int(d['value_group'])
         if 'naf_domains_secondary' in d:
             for naf in d['naf_domains_secondary']:
@@ -115,6 +117,7 @@ def parse_naf_list(naf_defs, include=None, exclude=None):
 
 def get_naf_sql(rules):
     '''
+    Get sql rules to select naf code
     '''
     codes, domains = rules
     sql = ['CASE e.naf']
@@ -143,7 +146,7 @@ def sub_maxvg(vg, num):
     return str(int(vg) - num)
 
 
-def get_size_rules(tpe, pme, eti, ge):
+def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
     # < 10 pers
     tpe_def = {
         '1-2': 0,
@@ -239,7 +242,7 @@ def get_size_rules(tpe, pme, eti, ge):
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *args, **kwargs):
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *args, **kwargs):  # pylint: disable=too-many-arguments
     if max_distance == '':
         max_distance = 10
 
@@ -279,7 +282,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, *
             'lon': lon,
             'dist': max_distance
         }
-        sql = cur.mogrify(MATCH_QUERY.format(
+        sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
             naf_rules=naf_sql,
             size_rules=size_sql,
             limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''

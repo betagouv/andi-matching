@@ -8,7 +8,7 @@ import click
 import yaml
 
 import exec_drive
-import lib_match
+from matching import lib_match
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))

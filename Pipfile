@@ -16,6 +16,10 @@ google-api-python-client = "*"
 google-auth-httplib2 = "*"
 google-auth-oauthlib = "*"
 unidecode = "*"
+fastapi = "*"
+uvicorn = "*"
+pytz = "*"
+pylint-fail-under = "*"
 
 [requires]
 python_version = "3.7"
