@@ -50,6 +50,7 @@ config = {
         'log_level': 'info' if not args.debug else 'debug',
     }
 }
+
 logger.debug('Config values: \n%s', yaml.dump(config))
 
 
