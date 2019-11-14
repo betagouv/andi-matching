@@ -1,0 +1,65 @@
+language: python
+python:
+  - 3.7
+matrix:
+    include:
+      - python: 3.7
+        dist: xenial
+        sudo: true
+services: "-docker"
+stages:
+- test
+- build
+- deploy
+git:
+  submodules: false
+sudo: false
+cache:
+  directories:
+  - public
+notifications:
+  slack: andi-startup:4EvkZ1UZEV4LwZXzvXhDGP8u
+jobs:
+  include:
+  ########### TEST
+  - stage: test
+    name: Test form_handler component
+    script:
+    - pipenv install --dev
+    - make tests
+
+  ########### BUILD
+  - stage: build
+    name: Build docker matching
+    script:
+    - echo "Building commit $TRAVIS_COMMIT"
+    - 'docker build -t andi_matching
+      --build-arg PG_DSN=$PG_DSN
+      --build-arg HOST=0.0.0.0
+      --build-arg PORT=5000
+      ./
+
+      '
+    - docker images
+    - docker tag andi_matching $DOCKER_USER/private:andi_matching
+    - docker push $DOCKER_USER/private:andi_matching
+
+  ########### DEPLOY
+  - stage: deploy
+    name: Deploy docker matching
+    if: branch = master AND type = push AND fork = false
+    script:
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/private:andi_matching
+      || true"
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching || true"
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:5000
+      --add-host=database:172.17.0.1 --ip 172.17.0.2 --name matching berzemus/private:andi_matching"
+   
+addons:
+  ssh_known_hosts: andi.beta.gouv.fr
+before_install:
+- openssl aes-256-cbc -K $encrypted_2925775a3854_key -iv $encrypted_2925775a3854_iv
+  -in misc/deploy_ed25519.enc -out ./deploy_ed25519 -d
+- chmod 600 deploy_ed25519
+- echo "$DOCKER_PW" | docker login -u "$DOCKER_USER" --password-stdin
+- pip install pipenv
