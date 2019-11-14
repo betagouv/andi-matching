@@ -69,7 +69,9 @@ class ResponseData(BaseModel):
     departement: str
     city: str
     coords: Coordinates
-    size: SizeTypes
+    # FIXME: enum size type makes validator crash
+    # size: SizeTypes = SizeTypes.pme
+    size: str
     naf: str
     siret: str
     distance: int

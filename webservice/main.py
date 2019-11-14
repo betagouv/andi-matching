@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+import uvicorn
 from fastapi import FastAPI
-from model_output import Model as ResponseModel
-from model_input import Model as QueryModel
 from matching import lib_match
 import logging
 import argparse
 import yaml
-import os
+import os, sys
+sys.path.append(os.path.dirname(__file__))
+from model_output import Model as ResponseModel
+from model_input import Model as QueryModel
 
 
 # ################################################### SETUP AND ARGUMENT PARSING
@@ -54,3 +56,9 @@ def root():
 @app.post("/match", response_model=ResponseModel)
 async def matching(query: QueryModel):
     return {"coucou"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        **config['server']
+    )
