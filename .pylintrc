@@ -16,6 +16,8 @@ disable=missing-docstring,
         invalid-name,
         no-self-use,
         no-name-in-module,
+        pointless-string-statement,
+        too-few-public-methods,
 
 [FORMAT]
 

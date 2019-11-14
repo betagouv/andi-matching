@@ -1,13 +1,10 @@
+import uuid
 from datetime import datetime
 from enum import Enum
-import uuid
 from typing import List, Union
-from pydantic import (
-    BaseModel,
-    PositiveInt,
-    Json,
-    Schema,
-)
+
+from pydantic import BaseModel, Json, PositiveInt, Schema
+
 
 """
 Modèle des données en entrée pour le service matching

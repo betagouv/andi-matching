@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-import uvicorn
-from fastapi import FastAPI
-from matching import lib_match
-import logging
 import argparse
-import yaml
+# from matching import lib_match
+import logging
 import os
 import sys
-sys.path.append(os.path.dirname(__file__))
-from model_output import Model as ResponseModel
-from model_input import Model as QueryModel
-import pytz
 from datetime import datetime
+
+import pytz
+import uvicorn
+import yaml
+from fastapi import FastAPI
+
+from model_input import Model as QueryModel
+from model_output import Model as ResponseModel
+
+sys.path.append(os.path.dirname(__file__))
 
 """
 TODO:
@@ -105,7 +108,7 @@ def root():
 async def matching(query: QueryModel):
     trace = get_trace_obj(query)
     lat, lon = await get_address_coords(query.address)
-    params = get_parameters(query.criteria)
+    # params = get_parameters(query.criteria)
     # raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
     data = await make_data()
     return {

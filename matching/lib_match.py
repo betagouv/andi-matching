@@ -9,6 +9,7 @@ import yaml
 from psycopg2.extras import RealDictCursor
 
 from . import sql as SQLLIB
+
 # from sql import MATCH_QUERY
 
 logger = logging.getLogger(__name__)
