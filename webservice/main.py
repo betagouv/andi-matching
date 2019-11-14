@@ -46,7 +46,7 @@ config = {
     'pg': {'dsn': os.getenv('DSN', 'postgress://user:pass@localhost:5432/db')},
     'server': {
         'host': os.getenv('HOST', 'localhost'),
-        'port': int(os.getenv('PORT', 5000)),
+        'port': int(os.getenv('PORT', '5000')),
         'log_level': 'info' if not args.debug else 'debug',
     }
 }
@@ -63,7 +63,7 @@ def get_trace_obj(query):
     }
 
 
-def get_parameters(criteria):
+def get_parameters(_criteria):
     return {
         'max_distance': 10,
         'romes': ['1823'],
@@ -73,13 +73,13 @@ def get_parameters(criteria):
     }
 
 
-async def get_address_coords(address):
+async def get_address_coords(_address):
     lat = '10'
     lon = '10'
     return lat, lon
 
 
-async def make_data(responses=[]):
+async def make_data(_responses=None):
     return [{
         'id': '12',
         'name': 'Pains d\'Amandine',
@@ -107,7 +107,7 @@ def root():
 @app.post("/match", response_model=ResponseModel)
 async def matching(query: QueryModel):
     trace = get_trace_obj(query)
-    lat, lon = await get_address_coords(query.address)
+    # lat, lon = await get_address_coords(query.address)
     # params = get_parameters(query.criteria)
     # raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
     data = await make_data()

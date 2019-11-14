@@ -18,6 +18,7 @@ disable=missing-docstring,
         no-name-in-module,
         pointless-string-statement,
         too-few-public-methods,
+        fixme,
 
 [FORMAT]
 
