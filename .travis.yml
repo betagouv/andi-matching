@@ -44,11 +44,11 @@ jobs:
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:$PORT
       --add-host=database:172.17.0.1
       --ip 172.17.0.6
-      -e PROXY_PREFIX /api
-      -e PG_DSN $PG_DSN
-      -e HOST $HOST
-      -e PORT $PORT
-      -e LOG_LEVEL debug
+      -e PROXY_PREFIX=/api
+      -e PG_DSN=$PG_DSN
+      -e HOST=$HOST
+      -e PORT=$PORT
+      -e LOG_LEVEL=debug
       --name matching berzemus/matching:$TRAVIS_COMMIT"
 addons:
   ssh_known_hosts: andi.beta.gouv.fr
