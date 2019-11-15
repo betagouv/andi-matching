@@ -314,4 +314,5 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
 
 
 async def run_profile_async(*args, **kwargs):
+    # FIXME: make fully async
     return run_profile(*args, **kwargs)
