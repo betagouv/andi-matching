@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-# from matching import lib_match
+from matching import lib_match
 import logging
 import os
 import sys
@@ -37,7 +37,7 @@ logger.addHandler(logging.StreamHandler())
 
 
 config = {
-    'pg': {'dsn': os.getenv('DSN', 'postgress://user:pass@localhost:5432/db')},
+    'postgresql': {'dsn': os.getenv('PG_DSN', 'postgress://user:pass@localhost:5432/db')},
     'server': {
         'host': os.getenv('HOST', 'localhost'),
         'port': int(os.getenv('PORT', '5000')),
@@ -67,42 +67,68 @@ def get_trace_obj(query):
 
 
 def get_parameters(_criteria):
+    # FIXME: To be continued...
     return {
-        'max_distance': 10,
-        'romes': ['1823'],
+        'max_distance': 6,
+        'romes': ['H2207'],
         'includes': [],
         'excludes': [],
-        'sizes': [],
+        'sizes': ['pme'],
+        'multipliers': {
+            'fg': 5
+        },
     }
 
 
 async def get_address_coords(address):
     if address.type == 'string':
-        addr_string = address.content
+        addr_string = address.value
         geo_data = await geo_code_query(addr_string)
     elif address.type == 'geoapigouv':
-        geo_data = address.content
+        geo_data = address.value
     lat, lon = get_codes(geo_data)
     logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
     return lat, lon
 
 
-async def make_data(_responses=None):
+async def make_data(responses=None):
     return [{
-        'id': '12',
-        'name': 'Pains d\'Amandine',
-        'address': 'ADDRESSE',
-        'departement': '29',
-        'city': 'Cergy',
-        'coords': {'lat': 93.123, 'lon': 83.451},
-        'size': 'pme',
-        'naf': '7711A',
-        'siret': '21398102938',
-        'distance': 54,
-        'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
-        'score': 53,
-        'activity': 'Boulangerie',
-    }]
+        'id': r['id'],
+        'name': r['nom'],
+        'address': r['adresse'],
+        'departement': r['departement'],
+        'city': r['commune'],
+        'coords': {'lat': 93, 'lon': 18},
+        'size': r['taille'],
+        'naf': r['naf'],
+        'siret': r['siret'],
+        'distance': int(''.join(list(filter(str.isdigit, r['distance'])))),
+        'scoring': {
+            'geo': r['score_geo'],
+            'size': r['score_size'],
+            'naf': r['score_naf'],
+            'contact': r['score_contact'],
+            'pmsmp': r['score_welcome'],
+        },
+        'score': r['score_total'],
+        'activity': r['sector']
+    } for r in responses]
+
+    # return [{
+    #     'id': '12',
+    #     'name': 'Pains d\'Amandine',
+    #     'address': 'ADDRESSE',
+    #     'departement': '29',
+    #     'city': 'Cergy',
+    #     'coords': {'lat': 93.123, 'lon': 83.451},
+    #     'size': 'pme',
+    #     'naf': '7711A',
+    #     'siret': '21398102938',
+    #     'distance': 54,
+    #     'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
+    #     'score': 53,
+    #     'activity': 'Boulangerie',
+    # }]
 
 
 # ################################################################ SERVER ROUTES
@@ -114,11 +140,17 @@ def root():
 
 @app.post("/match", response_model=ResponseModel)
 async def matching(query: QueryModel):
+    logger.debug(query)
     trace = get_trace_obj(query)
-    # lat, lon = await get_address_coords(query.address)
-    # params = get_parameters(query.criteria)
-    # raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
-    data = await make_data()
+    lat, lon = await get_address_coords(query.address)
+    params = get_parameters(query.criteria)
+    logger.debug('Query params: %s', params)
+    raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
+    logger.debug('raw responses:')
+    logger.debug(yaml.dump(raw_data))
+    data = await make_data(raw_data)
+    logger.debug('clean responses:')
+    logger.debug(yaml.dump(data))
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),

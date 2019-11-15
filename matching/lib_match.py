@@ -277,15 +277,16 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
     logger.info('Connecting to database ...')
     with psycopg2.connect(cursor_factory=RealDictCursor, **cfg['postgresql']) as conn, conn.cursor() as cur:
         logger.info('Obtained database cursor')
+        # XXX: /!\ multiplier defauls hardcoded
         data = {
             'lat': lat,
             'lon': lon,
             'dist': max_distance,
-            'mul_geo': multipliers['fg'],
-            'mul_naf': multipliers['fn'],
-            'mul_siz': multipliers['ft'],
-            'mul_wel': multipliers['fw'],
-            'mul_con': multipliers['fc'],
+            'mul_geo': multipliers.get('fg', 1),
+            'mul_naf': multipliers.get('fn', 5),
+            'mul_siz': multipliers.get('ft', 3),
+            'mul_wel': multipliers.get('fw', 2),
+            'mul_con': multipliers.get('fc', 1),
 
         }
         sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
@@ -310,3 +311,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
         ])
 
     return result
+
+
+async def run_profile_async(*args, **kwargs):
+    return run_profile(*args, **kwargs)

@@ -1,4 +1,5 @@
 import library
+import pytest
 
 """
 Expected geo api output:
@@ -42,14 +43,16 @@ Expected geo api output:
 """
 
 
-def test_string_query():
-    out = library.geo_code_query("8 rue Honoré Chevalier, Paris")
+@pytest.mark.asyncio
+async def test_string_query():
+    out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
     assert out is not None
     assert isinstance(out, dict)
 
 
-def test_get_codes():
-    out = library.geo_code_query("8 rue Honoré Chevalier, Paris")
+@pytest.mark.asyncio
+async def test_get_codes():
+    out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
     lat, lon = library.get_codes(out)
     assert lat == 2.331544
     assert lon == 48.849392

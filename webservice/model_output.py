@@ -69,7 +69,7 @@ class ResponseData(BaseModel):
     coords: Coordinates
     # FIXME: enum size type makes validator crash
     # size: SizeTypes = SizeTypes.pme
-    size: str
+    size: str = None
     naf: str
     siret: str
     distance: int

@@ -10,6 +10,7 @@ pylint = "*"
 pylint-fail-under = "*"
 pytest = "*"
 pytest-cov = "*"
+pytest-asyncio = "*"
 
 [packages]
 click = "*"
@@ -22,6 +23,7 @@ unidecode = "*"
 fastapi = "*"
 uvicorn = "*"
 pytz = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.7"
