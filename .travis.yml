@@ -30,22 +30,26 @@ jobs:
     name: Build docker matching
     script:
     - echo "Building commit $TRAVIS_COMMIT"
-    - 'docker build -t andi_matching --build-arg PG_DSN=$PG_DSN --build-arg HOST=0.0.0.0
-      --build-arg PORT=5000 ./
-
-      '
+    - 'docker build -t andi_matching ./'
     - docker images
-    - docker tag andi_matching $DOCKER_USER/private:andi_matching
-    - docker push $DOCKER_USER/private:andi_matching
+    - docker tag andi_matching $DOCKER_USER/matching:$TRAVIS_COMMIT
+    - docker push $DOCKER_USER/matching:$TRAVIS_COMMIT
   - stage: deploy
     name: Deploy docker matching
     if: branch = master AND type = push AND fork = false
     script:
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/private:andi_matching
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TAVIS_COMMIT
       || true"
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching || true"
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:5000
-      --add-host=database:172.17.0.1 --ip 172.17.0.2 --name matching berzemus/private:andi_matching"
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:$PORT
+      --add-host=database:172.17.0.1
+      --ip 172.17.0.6
+      -e PROXY_PREFIX /api
+      -e PG_DSN $PG_DSN
+      -e HOST $HOST
+      -e PORT $PORT
+      -e LOG_LEVEL debug
+      --name matching berzemus/matching:$TRAVIS_COMMIT"
 addons:
   ssh_known_hosts: andi.beta.gouv.fr
 before_install:
