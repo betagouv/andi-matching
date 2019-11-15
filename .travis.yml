@@ -38,7 +38,7 @@ jobs:
     name: Deploy docker matching
     if: branch = master AND type = push AND fork = false
     script:
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TAVIS_COMMIT
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TRAVIS_COMMIT
       || true"
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching || true"
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:$PORT
