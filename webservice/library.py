@@ -12,3 +12,7 @@ def geo_code_query(query):
     }
     resp = requests.get(url=url, params=params)
     return resp.json()
+
+
+def get_codes(data):
+    return data['features'][0]['geometry']['coordinates']

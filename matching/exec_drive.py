@@ -12,7 +12,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 SPREADSHEET_ID = '187xkbQY_vFCxscWLJ-TjEzgmxQd9qPydcRpKLnVmsBU'
 SHEED_ID = '1686694416'
-RANGE = 'Config_Matching!A:I'
+RANGE = 'Config_Matching!A:N'
 
 
 def get_data(config):
@@ -53,6 +53,13 @@ def get_profiles(service):
             'romes': p.get('rome', '').split(' '),
             'includes': p['include'].split(' ') if 'include' in p and p['include'] else None,
             'excludes': p['exclude'].split(' ') if 'exclude' in p and p['exclude'] else None,
+            'multipliers': {
+                'fn': int(p['force naf']),
+                'fg': int(p['force geo']),
+                'ft': int(p['force taille']),
+                'fw': int(p['force pmsmp']),
+                'fc': int(p['force contact']),
+            }
         }
     return profiles
 

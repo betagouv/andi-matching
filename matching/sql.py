@@ -126,11 +126,11 @@ SELECT
     cr_cn.score AS score_contact,
     cr_si.score AS score_size,
     cr_ge.score AS score_geo,
-    cr_ge.score * 1 +
-    cr_si.score * 3 +
-    cr_cn.score * 3 +
-    cr_wc.score * 3 +
-    cr_nf.score * 5 AS score_total
+    cr_ge.score * %(mul_geo)s +
+    cr_si.score * %(mul_siz)s +
+    cr_cn.score * %(mul_con)s +
+    cr_wc.score * %(mul_wel)s +
+    cr_nf.score * %(mul_naf)s AS score_total
 FROM
     crit_geo cr_ge
 INNER JOIN

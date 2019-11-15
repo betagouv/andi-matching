@@ -3,7 +3,7 @@
 install:
 	pipenv install --dev
 
-tests: flake8 pylint-fail-under
+tests: flake8 pylint-fail-under unittests
 
 flake8:
 	pipenv run flake8

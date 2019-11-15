@@ -14,7 +14,8 @@ from fastapi import FastAPI
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
 from library import (
-    geo_code_query
+    geo_code_query,
+    get_codes,
 )
 
 sys.path.append(os.path.dirname(__file__))
@@ -81,7 +82,7 @@ async def get_address_coords(address):
         geo_data = await geo_code_query(addr_string)
     elif address.type == 'geoapigouv':
         geo_data = address.content
-    lat, lon = geo_data['features'][0]['geometry']['coordinates']
+    lat, lon = get_codes(geo_data)
     logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
     return lat, lon
 
