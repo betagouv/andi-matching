@@ -1,5 +1,7 @@
-import library
 import pytest
+
+import library
+
 
 """
 Expected geo api output:

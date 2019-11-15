@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-from matching import lib_match
 import logging
 import os
 import sys
@@ -11,12 +10,10 @@ import uvicorn
 import yaml
 from fastapi import FastAPI
 
+from library import geo_code_query, get_codes
+from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
-from library import (
-    geo_code_query,
-    get_codes,
-)
 
 sys.path.append(os.path.dirname(__file__))
 
