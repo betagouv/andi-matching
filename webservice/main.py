@@ -36,22 +36,26 @@ parser.add_argument('--config', dest='config', help='config file', default=None)
 parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
 args = parser.parse_args()
 
-if args.debug:
-    logger.setLevel(logging.getLevelName('DEBUG'))
-    logger.debug('Debug activated')
-    logger.debug('Arguments: %s', args)
-
-app = FastAPI()
 config = {
     'pg': {'dsn': os.getenv('DSN', 'postgress://user:pass@localhost:5432/db')},
     'server': {
         'host': os.getenv('HOST', 'localhost'),
         'port': int(os.getenv('PORT', '5000')),
         'log_level': 'info' if not args.debug else 'debug',
-    }
+    },
+    'log_level': os.getenv('LOG_LEVEL', 'info'),
+    'proxy_prefix': os.getenv('PROXY_PREFIX', '/'),
 }
 
+if args.debug or config['log_level'] == 'debug':
+    logger.setLevel(logging.getLevelName('DEBUG'))
+
+logger.debug('Debug activated')
+logger.debug('Arguments: %s', args)
+logger.debug('Arguments: %s', args)
 logger.debug('Config values: \n%s', yaml.dump(config))
+
+app = FastAPI(openapi_prefix=config['proxy_prefix'])
 
 
 # ################################################################ MATCHING FLOW
