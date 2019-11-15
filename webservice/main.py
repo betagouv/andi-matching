@@ -13,6 +13,9 @@ from fastapi import FastAPI
 
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
+from library import (
+    geo_code_query
+)
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -31,28 +34,22 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
 logger.addHandler(logging.StreamHandler())
 
-parser = argparse.ArgumentParser(description='Matching server process')
-parser.add_argument('--config', dest='config', help='config file', default=None)
-parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
-args = parser.parse_args()
 
 config = {
     'pg': {'dsn': os.getenv('DSN', 'postgress://user:pass@localhost:5432/db')},
     'server': {
         'host': os.getenv('HOST', 'localhost'),
         'port': int(os.getenv('PORT', '5000')),
-        'log_level': 'info' if not args.debug else 'debug',
+        'log_level': os.getenv('LOG_LEVEL', 'info'),
     },
     'log_level': os.getenv('LOG_LEVEL', 'info'),
     'proxy_prefix': os.getenv('PROXY_PREFIX', '/'),
 }
 
-if args.debug or config['log_level'] == 'debug':
+if config['log_level'] == 'debug':
     logger.setLevel(logging.getLevelName('DEBUG'))
 
 logger.debug('Debug activated')
-logger.debug('Arguments: %s', args)
-logger.debug('Arguments: %s', args)
 logger.debug('Config values: \n%s', yaml.dump(config))
 
 app = FastAPI(openapi_prefix=config['proxy_prefix'])
@@ -78,9 +75,14 @@ def get_parameters(_criteria):
     }
 
 
-async def get_address_coords(_address):
-    lat = '10'
-    lon = '10'
+async def get_address_coords(address):
+    if address.type == 'string':
+        addr_string = address.content
+        geo_data = await geo_code_query(addr_string)
+    elif address.type == 'geoapigouv':
+        geo_data = address.content
+    lat, lon = geo_data['features'][0]['geometry']['coordinates']
+    logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
     return lat, lon
 
 
@@ -124,6 +126,16 @@ async def matching(query: QueryModel):
     }
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Matching server process')
+    parser.add_argument('--config', dest='config', help='config file', default=None)
+    parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
+    args = parser.parse_args()
+    if args.debug:
+        logger.debug('Debug activated')
+        config['log_level'] = 'debug'
+        config['server']['log_level'] = 'debug'
+        logger.debug('Arguments: %s', args)
+
     uvicorn.run(
         app,
         **config['server']
