@@ -56,5 +56,5 @@ async def test_string_query():
 async def test_get_codes():
     out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
     lat, lon = library.get_codes(out)
-    assert lat == 2.331544
-    assert lon == 48.849392
+    assert lat == 48.849392
+    assert lon == 2.331544
