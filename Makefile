@@ -3,7 +3,7 @@
 install:
 	pipenv install --dev
 
-tests: flake8 pylint-fail-under
+tests: flake8 pylint-fail-under unittests
 
 flake8:
 	pipenv run flake8
@@ -20,5 +20,8 @@ serve-dev:
 serve:
 	export PYTHONPATH=$PYTHONPATH:./ && ./webservice/main.py
 
+unittests:
+	PYTHONPATH=$PYTHONPATH:./:./matching:./webservice pipenv run pytest --cov=./webservice .
+
 isort:
-	pipenv run isort
+	pipenv run isort ./**/*.py

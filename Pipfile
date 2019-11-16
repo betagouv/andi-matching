@@ -7,6 +7,10 @@ verify_ssl = true
 isort = "*"
 flake8 = "*"
 pylint = "*"
+pylint-fail-under = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
 
 [packages]
 click = "*"
@@ -19,7 +23,7 @@ unidecode = "*"
 fastapi = "*"
 uvicorn = "*"
 pytz = "*"
-pylint-fail-under = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.7"

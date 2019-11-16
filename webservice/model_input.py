@@ -18,7 +18,7 @@ Prototype convenu:
     '_session_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
     'address': {
         'type': 'string|geoapigouv'
-        'content': '',
+        'value': '',
     },
     'criteria': [
         {

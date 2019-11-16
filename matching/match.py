@@ -33,6 +33,13 @@ def cfg_get(config=''):
     return {**def_config, **config}
 
 
+def show_results(res):
+    print('Obtained results preview (score is naf / size / geo / welcome / contact):')
+    for row in res[:20]:
+        score = f"({row['score_naf']}-{row['score_size']}-{row['score_geo']}-{row['score_welcome']}-{row['score_contact']} => {row['score_total']})"
+        print(f"{row['naf']}  {row['nom']:32.30}\t{row['sector']:35.37}\t{row['distance']}\t{score}\t{row['id']}")
+
+
 # ################################################################### MAIN FLOW
 # #############################################################################
 @click.group()
@@ -44,6 +51,9 @@ def main(ctx, config_file, debug, limit):
     if debug:
         logger.setLevel(logging.getLevelName('DEBUG'))
         logger.debug('Debugging enabled')
+        ctx.obj['debug'] = True
+    else:
+        ctx.obj['debug'] = False
 
     ctx.obj['cfg'] = cfg_get(config_file)
     logger.debug('Loaded Config:\n%s', json.dumps(ctx.obj['cfg'], indent=2))
@@ -64,9 +74,17 @@ def list_drive(ctx):
 @main.command()
 @click.pass_context
 @click.option('--profile', help="specify profile(s)", multiple=True, default=None)
-def run_drive(ctx, profile):
+@click.option('--list', 'list_flag', is_flag=True, default=False)
+def run_drive(ctx, profile, list_flag):
     logger.info('Getting settings from google drive')
     profiles = exec_drive.get_data(ctx.obj['cfg'])
+
+    if list_flag:
+        profiles = exec_drive.get_data(ctx.obj['cfg'])
+        logger.info('Outputting available profiles')
+        print(json.dumps(list(profiles.keys()), indent=2))
+        return
+
     results = {}
     for k, params in profiles.items():
         if profile and k not in profile:
@@ -75,13 +93,15 @@ def run_drive(ctx, profile):
         logger.debug(json.dumps(params, indent=2))
         try:
             results[k] = lib_match.run_profile(ctx.obj['cfg'], **params)
+            if ctx.obj['debug']:
+                show_results(results[k][:20])
         except Exception as e:
             logger.exception(e)
             logger.warning('Failed parsing profile %s, skipping', k)
 
     for key, result in results.items():
         keys = result[0].keys()
-        temp_file = f'./output/{key}.csv'
+        temp_file = f'../output/{key}.csv'
         with open(temp_file, 'w') as output_csv:
             dwriter = csv.DictWriter(output_csv, keys)
             dwriter.writeheader()
@@ -122,12 +142,17 @@ def run_csv(ctx, csv_file, lat, lon, max_distance, rome, include, exclude, tpe, 
     if ge:
         sizes.append('ge')
 
-    results = lib_match.run_profile(cfg, lat, lon, max_distance, rome, include, exclude, sizes)
+    multipliers = {
+        'fn': 5,
+        'fg': 1,
+        'ft': 3,
+        'fw': 3,
+        'fc': 3,
+    }
 
-    print('Obtained results preview (score is naf / size / geo / welcome / contact):')
-    for row in results[:20]:
-        score = f"({row['score_naf']}-{row['score_size']}-{row['score_geo']}-{row['score_welcome']}-{row['score_contact']} => {row['score_total']})"
-        print(f"{row['naf']}  {row['nom']:32.30}\t{row['sector']:35.37}\t{row['distance']}\t{score}\t{row['id']}")
+    results = lib_match.run_profile(cfg, lat, lon, max_distance, rome, include, exclude, sizes, multipliers)
+
+    show_results(results[:20])
 
     keys = results[0].keys()
     with open(csv_file, 'w') as output_csv:
