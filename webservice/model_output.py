@@ -88,3 +88,37 @@ class Model(BaseModel):
     session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
     trace: str = Schema(..., alias='_trace', description="Trace ID")
     data: List[ResponseData] = Schema(..., description="response data")
+
+    class Config:
+        schema_extra = {
+            'example': {
+                "_v": 1,
+                "_timestamp": "2019-11-18T10:14:14.758899+00:00",
+                "_query_id": "efb7afcf-836b-4029-a3ce-f7c0b4b3499b",
+                "_session_id": "efb7afcf-836b-4029-a3ce-f7c0b4b3499b",
+                "_trace": "not_implemented_yet",
+                "data": [{
+                    "id": "29439",
+                    "name": "REVILOX",
+                    "address": "6 Rue de la Métairie, 95640 Marines, France",
+                    "departement": "Val-d'Oise",
+                    "city": "Marines",
+                    "coords": {
+                        "lat": 93,
+                        "lon": 18
+                    },
+                    "naf": "1623Z",
+                    "siret": "32774533700029",
+                    "distance": 5,
+                    "scoring": {
+                        "geo": 3,
+                        "size": 5,
+                        "contact": 1,
+                        "pmsmp": 1,
+                        "naf": 4
+                    },
+                    "score": 53,
+                    "activity": "Fabrication de charpentes et d'autres menuiseries",
+                    "size": "20-49"
+                }]
+            }}

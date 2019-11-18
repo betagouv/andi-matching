@@ -8,33 +8,6 @@ from pydantic import BaseModel, Json, PositiveInt, Schema
 
 """
 Modèle des données en entrée pour le service matching
-
-Prototype convenu:
-```json
-{
-    '_v': 1,
-    '_timestamp': 1239120938,
-    '_query_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
-    '_session_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
-    'address': {
-        'type': 'string|geoapigouv'
-        'value': '',
-    },
-    'criteria': [
-        {
-            'id': 'distance',
-            'value': 10,
-            'priority': 5,
-        },
-        {
-            'id': 'rome_codes',
-            'value':[ { 'code': 'M1805', 'priority': 3 } ],
-            'priority': 5,
-            ]
-        },
-    ]
-}
-```
 """
 
 
@@ -54,7 +27,7 @@ class CriteriaTypes(str, Enum):
 
 
 class Criteria(BaseModel):
-    type: CriteriaTypes = Schema(..., description="Type")
+    type: CriteriaTypes = Schema(..., description="Type of the address value")
     value: Union[str, list, Json] = None
     priority: PositiveInt = Schema(..., gt=0, lt=5, description="Priority (1 to 5)")
 
@@ -69,3 +42,28 @@ class Model(BaseModel):
     session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
     address: Address = Schema(..., description="query base address")
     criteria: List[Criteria] = Schema([], description="List of criteria")
+
+    class Config:
+        schema_extra = {
+            'example': {
+                '_v': 1,
+                '_timestamp': 1239120938,
+                '_query_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
+                '_session_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
+                'address': {
+                    'type': 'string',
+                    'value': '16 Rue le Clos du Puits, 95830 Cormeilles-en-Vexin'
+                },
+                'criteria': [
+                    {
+                        'type': 'distance',
+                        'value': 10,
+                        'priority': 3
+                    },
+                    {
+                        'type': 'rome_codes',
+                        'value': [{'code': 'M1805', 'priority': 3}],
+                        'priority': 5
+                    }
+                ]
+            }}
