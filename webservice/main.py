@@ -9,6 +9,7 @@ import pytz
 import uvicorn
 import yaml
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from library import geo_code_query, get_codes
 from matching import lib_match
@@ -51,6 +52,13 @@ logger.debug('Debug activated')
 logger.debug('Config values: \n%s', yaml.dump(config))
 
 app = FastAPI(openapi_prefix=config['proxy_prefix'])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 # ################################################################ MATCHING FLOW
