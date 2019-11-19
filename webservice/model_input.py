@@ -21,13 +21,14 @@ class Address(BaseModel):
     value: Union[str, Json] = None
 
 
-class CriteriaTypes(str, Enum):
+class CriteriaNames(str, Enum):
     distance = 'distance'
     rome_codes = 'rome_codes'
 
 
 class Criteria(BaseModel):
-    type: CriteriaTypes = Schema(..., description="Type of the address value")
+    name: CriteriaNames = Schema(..., description="Type of the address value")
+    type: str = Schema(..., description="'Value' field data type")
     value: Union[str, list, Json] = None
     priority: PositiveInt = Schema(..., gt=0, lt=5, description="Priority (1 to 5)")
 
@@ -56,12 +57,14 @@ class Model(BaseModel):
                 },
                 'criteria': [
                     {
-                        'type': 'distance',
+                        'name': 'distance',
+                        'type': 'integer',
                         'value': 10,
                         'priority': 3
                     },
                     {
-                        'type': 'rome_codes',
+                        'name': 'rome_codes',
+                        'type': 'object_list',
                         'value': [{'code': 'M1805', 'priority': 3}],
                         'priority': 5
                     }
