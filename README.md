@@ -9,7 +9,7 @@
 
 [ANDi](https://andi.beta.gouv.fr) est une service numérique en développement visant à faciliter l'immersion professionnelle des personnes en situation de handicap.
 
-# andi-matching
+# 🎚andi-matching
 Outil "matching" entre profils PSH et DB Entreprises. En partant des critères de recherches spécifiques à une PSH, l'outil permet de retrouver les entreprises qui y répondent tout en nuancant les résultats, permettant de limiter certains biais de sélection (effet de primauté, ...)
 
 ## Socle technique
