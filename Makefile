@@ -15,7 +15,7 @@ pylint-fail-under:
 	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
 
 serve-dev:
-	export PYTHONPATH=$PYTHONPATH:./ && pipenv run ./webservice/main.py
+	export PYTHONPATH=$PYTHONPATH:./ && pipenv run ./webservice/main.py --debug
 
 serve:
 	export PYTHONPATH=$PYTHONPATH:./ && ./webservice/main.py

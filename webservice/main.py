@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import uuid
 import logging
 import os
 import sys
@@ -8,6 +9,7 @@ from datetime import datetime
 import pytz
 import uvicorn
 import yaml
+import math
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
@@ -19,17 +21,22 @@ from library import (
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
+from model_rome_suggest import Model as RomeResponseModel
+from model_rome_suggest import InputModel as RomeInputModel
+from pydantic import PositiveInt
 
 sys.path.append(os.path.dirname(__file__))
 
 """
 TODO:
 - return error structure
-- integrate with matchn backend
+V integrate with matchn backend
 - add behave testing
 - monitoring
 """
 VERSION = 1
+START_TIME = datetime.now(pytz.utc)
+COUNTER = 0
 
 # ################################################### SETUP AND ARGUMENT PARSING
 # ##############################################################################
@@ -144,11 +151,30 @@ async def make_data(responses=None):
 # ##############################################################################
 @app.get("/")
 def root():
-    return {"Salut le monde !"}
+    """
+    Query service status
+    """
+    now = datetime.now(pytz.utc)
+    delta = now - START_TIME
+    delta_s = math.floor(delta.total_seconds())
+    return {
+        'all_systems': 'nominal',
+        'timestamp': now,
+        'start_time': START_TIME,
+        'uptime': f'{delta_s} seconds | {divmod(delta_s, 60)[0]} minutes | {divmod(delta_s, 86400)[0]} days',
+        'api_version': VERSION,
+        'api_counter': COUNTER,
+    }
 
 
 @app.post("/match", response_model=ResponseModel)
 async def matching(query: QueryModel):
+    """
+    Matching endpoint:
+    Web API for ANDi internal matching algorithm.
+    """
+    global COUNTER
+    COUNTER += 1
     logger.debug(query)
     trace = get_trace_obj(query)
     lat, lon = await get_address_coords(query.address)
@@ -168,10 +194,29 @@ async def matching(query: QueryModel):
     }
 
 
-@app.get("/rome_suggest")
-async def rome_suggest():
+@app.get("/rome_suggest", response_model=RomeResponseModel)
+async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
+    """
+    Rome suggestion endpoint:
+    Query rome code suggestions according to input string.
+    """
+    global COUNTER
+    COUNTER += 1
+    query_id = uuid.uuid4()
+    raw_query = {
+        '_v': _v,
+        '_timestamp': _timestamp if _timestamp else datetime.now(pytz.utc),
+        '_query_id': query_id,
+        '_session_id': _sid,
+        'needle': q
+    }
+    logger.debug('Query params: %s', raw_query)
+    query = RomeInputModel(**raw_query)
+
     trace = get_trace_obj(query)
-    rome_list = await rome_list_query()
+    logger.debug('Running query...')
+    rome_list = await rome_list_query(query.needle)
+    logger.debug('Obtained %s results', len(rome_list))
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),

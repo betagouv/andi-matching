@@ -1,5 +1,8 @@
 import aiohttp
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def geo_code_query(query):
@@ -33,6 +36,7 @@ async def rome_list_query(query):
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
+            logger.debug('Querying LaBonneBoite...')
             response = await response.text()
             return json.loads(response)
             # FIXME: API response content-type is not json
