@@ -11,7 +11,11 @@ import yaml
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from library import geo_code_query, get_codes
+from library import (
+    geo_code_query,
+    get_codes,
+    rome_list_query
+)
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
@@ -160,6 +164,18 @@ async def matching(query: QueryModel):
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),
         'data': data,
+        **trace,
+    }
+
+
+@app.get("/rome_suggest")
+async def rome_suggest():
+    trace = get_trace_obj(query)
+    rome_list = await rome_list_query()
+    return {
+        '_v': VERSION,
+        '_timestamp': datetime.now(pytz.utc),
+        'data': rome_list,
         **trace,
     }
 

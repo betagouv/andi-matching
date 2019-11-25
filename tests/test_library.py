@@ -1,4 +1,5 @@
 import pytest
+import json
 
 import library
 
@@ -58,3 +59,12 @@ async def test_get_codes():
     lat, lon = library.get_codes(out)
     assert lat == 48.849392
     assert lon == 2.331544
+
+
+@pytest.mark.asyncio
+async def test_get_rome_suggestions():
+    out = await library.rome_list_query("phil")
+    print(json.dumps(out, indent=2))
+    assert out is not None
+    assert len(out) == 4
+    assert out[0].get('id') == "K2401"
