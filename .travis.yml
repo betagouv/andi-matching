@@ -1,15 +1,4 @@
 language: python
-# matrix:
-#   include:
-#   - python: 3.7
-#     dist: xenial
-#     sudo: true
-#     env: TOX_ENV=py37
-#   - python: 3.6
-#     dist: xenial
-#     sudo: true
-#     env: TOX_ENV=py36
-# script: tox -e $TOX_ENV
 services: "-docker"
 stages:
 - test
@@ -31,11 +20,11 @@ jobs:
     script:
     - pipenv install --dev
     - make tests
-  - name: Tox Test
+  - name: Tox Test Python3.7
     python: 3.7
     env: TOX_ENV=py37
     script: tox -e $TOX_ENV
-  - name: Tox Test
+  - name: Tox Test Python3.6
     python: 3.6
     env: TOX_ENV=py36
     script: tox -e $TOX_ENV

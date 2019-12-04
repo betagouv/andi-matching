@@ -17,7 +17,7 @@ setup(
     extras_require=EXTRAS,
     packages=find_packages(),
     install_requires=[],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     author='Pieterjan Montens',
     author_email='pieterjan@montens.net',
 )

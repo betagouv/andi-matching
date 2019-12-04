@@ -15,6 +15,56 @@ Outil "matching" entre profils PSH et DB Entreprises. En partant des critères d
 Actuellement, le service mathing est se compose de l'**Outil Matching**, la librairie métier, et l'**API Web** qui publie une interface REST de l'outil de matching.
 
 ## Utilisation et déploiement
+### Outil matching
+Après installation par `pipenv` de l'environnemnt nécessaire (`pipenv install` à la racine du projet), l'outil de matching offre une interface en ligne de commande:
+`export PYTHONPATH=./:$PYTHONPATH && matching/match.py`
+```bash
+
+Usage: match.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --config_file TEXT
+  --debug
+  --limit TEXT        Limit output rows (testing only)
+  --help              Show this message and exit.
+
+Commands:
+  list-drive
+  run-csv
+  run-drive
+```
+L'interface CLI accepte des paramètres directement saisis en ligne de commande, un lien vers un Google Sheet contenant les variables nécessaires, ou un fichier CSV.
+
+Exemples de commande:
+```bash
+./match.py --lat '49.0465' --lon '2.0655' --max-distance 10 --rome K2112  --config_file config.yaml --debug --pme
+./match.py --config_file config.yaml run-drive --profile [PROFIL]
+```
+
+### API Matching
+Les variables d'environnement suivantes doivent être définies:
+```bash
+> cat env.sh 
+export PG_DSN=postgres://[POSTGRES_DSN]
+export LOG_LEVEL=[LOG_LEVEL]
+
+# Pour les appliquer:
+> . env.sh
+```
+
+Pour lancer l'API matching en local (après un `pipenv install`)
+```
+# en _debug_
+make serve-dev
+# sinon
+make serve
+```
+
+### Déploiement
+Le déploiement de l'API Matching et de la librairie est détaillée dans le `DockerFile`.
+Celui-ci se contente de définir les variables d'environnement requises, d'installer l'environnement Python figée dans le `Pipfile.lock`, de copier les fichiers nécesaires et de lancer l'API, qui sera fournie sur le port 9000 par défaut (voir variables d'environnent du CI).
+
+Le déploiement est assuré par Travis, et est détaillé dans le fichier `.travis.yml`.
 
 
 ## Socle technique
@@ -51,8 +101,13 @@ Il est utilisé ici pour tester l'outil sous plusieurs versions Python dans le C
 ```bash
 # Pour lancer tox
 tox
+
+# Pour spécifier une version supportée par le composant
+tox -e [py36 | py37]
 ```
 
+### Travis
+Le fichier `.travis.yml` détaille les procédures de test et de validation automatisées, ainsi que le _build_ et le déploiement.
 
 
 ## Notes diverses
