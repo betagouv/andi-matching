@@ -14,6 +14,7 @@ matrix:
     sudo: true
     env:
     - TOX_ENV=py36
+script: tox -e $TOX_ENV
 services: "-docker"
 stages:
 - test
@@ -35,8 +36,6 @@ jobs:
     script:
     - pipenv install --dev
     - make tests
-  - name: TOX Testing
-    script: tox -e $TOX_ENV
   - stage: build
     name: Build docker matching
     python: 3.7
