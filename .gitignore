@@ -2,3 +2,11 @@
 credentials.json
 *.pickle
 config.yaml
+.coverage
+.eggs
+.tox
+.tra
+__pycache__
+*.egg-info
+*.sh
+deploy_ed25519
