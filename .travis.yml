@@ -1,11 +1,19 @@
 language: python
 python:
+- 3.6
 - 3.7
 matrix:
   include:
   - python: 3.7
     dist: xenial
     sudo: true
+    env:
+    - TOX_ENV=py37
+  - python: 3.6
+    dist: xenial
+    sudo: true
+    env:
+    - TOX_ENV=py36
 services: "-docker"
 stages:
 - test
@@ -23,11 +31,15 @@ jobs:
   include:
   - stage: test
     name: Test form_handler component
+    python: 3.7
     script:
     - pipenv install --dev
     - make tests
+  - name: TOX Testing
+    script: tox -e $TOX_ENV
   - stage: build
     name: Build docker matching
+    python: 3.7
     script:
     - echo "Building commit $TRAVIS_COMMIT"
     - 'docker build -t andi_matching ./'
@@ -36,6 +48,7 @@ jobs:
     - docker push $DOCKER_USER/matching:$TRAVIS_COMMIT
   - stage: deploy
     name: Deploy docker matching
+    python: 3.7
     if: branch = master AND type = push AND fork = false
     script:
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TRAVIS_COMMIT
@@ -58,3 +71,4 @@ before_install:
 - chmod 600 deploy_ed25519
 - echo "$DOCKER_PW" | docker login -u "$DOCKER_USER" --password-stdin
 - pip install pipenv
+- pip install tox

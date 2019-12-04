@@ -14,6 +14,9 @@ Outil "matching" entre profils PSH et DB Entreprises. En partant des critères d
 
 Actuellement, le service mathing est se compose de l'**Outil Matching**, la librairie métier, et l'**API Web** qui publie une interface REST de l'outil de matching.
 
+## Utilisation et déploiement
+
+
 ## Socle technique
 
 ### Outil Matching
@@ -26,6 +29,30 @@ Actuellement, le service mathing est se compose de l'**Outil Matching**, la libr
 - framework [FastAPI](https://github.com/tiangolo/fastapi) implémentant [OpenAPI](https://pydantic-docs.helpmanual.io/) et [JSON Schema](http://json-schema.org/), intégrant [Starlette](https://github.com/encode/starlette) (framework ASGI, support WebSocket, GraphQL, CORS, ...) et [pydantic](https://pydantic-docs.helpmanual.io/) (validation de données)
 - Pipenv / docker
 - documentation API auto-générée (via OpenAPi - ex-swagger)
+
+## Tests et validation
+### Sous **pipenv**
+Le lancement des tests et outils de validation (flake8, pylint, pytest) sont définis dans le `MakeFile`.
+
+Ils sont lancés comme suit:
+```bash
+# Tous (utilisé par le CLI):
+make tests
+
+# Uniquement l'un d'eux
+make [flake8 | pylint | unittests]
+
+```
+Note: la commande `tests` fait passer `pylint` pour autant que le score dépasse 9.5 (cf. `MakeFile` => `pylint-fail-under`)
+
+### Sous **tox**
+Tox est le nouvel outil recommandé par python pour tester (et déployer) les composants Python.
+Il est utilisé ici pour tester l'outil sous plusieurs versions Python dans le CI de Travis.
+```bash
+# Pour lancer tox
+tox
+```
+
 
 
 ## Notes diverses
