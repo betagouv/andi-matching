@@ -23,7 +23,6 @@ unidecode = "*"
 fastapi = "*"
 uvicorn = "*"
 pytz = "*"
-aiohttp = "*"
 
 [requires]
 python_version = "3.7"
