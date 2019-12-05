@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import csv
 from collections import OrderedDict
 from urllib.parse import quote_plus
 
@@ -13,10 +14,12 @@ from . import sql as SQLLIB
 # from sql import MATCH_QUERY
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.getLevelName('INFO'))
+logger.setLevel(logging.getLevelName('DEBUG'))
 logger.addHandler(logging.StreamHandler())
 
 MAX_VALUE_GROUP = '5'
+
+ANDIDATA_FILE = 'andi_rome2naf_20191203'
 
 
 # ##################################################################### HELPERS
@@ -54,11 +57,12 @@ def parse_rome_size_prefs(rome_defs, tpe, pme, eti, ge):
         ('eti', eti),
         ('ge', ge)
     ])
-    for rome, d in rome_defs.items():
-        if 'preferred_size' in d and d['preferred_size'] is not None:
-            logger.info('ROME %s preferred sizes: %s', rome, ', '.join(d['preferred_size']))
-            for t in d['preferred_size']:
-                base[t] = True if base[t] is None else base[t]
+    if rome_defs:
+        for rome, d in rome_defs.items():
+            if 'preferred_size' in d and d['preferred_size'] is not None:
+                logger.info('ROME %s preferred sizes: %s', rome, ', '.join(d['preferred_size']))
+                for t in d['preferred_size']:
+                    base[t] = True if base[t] is None else base[t]
 
     base = {k: False if v is None else v for k, v in base.items()}
 
@@ -113,6 +117,34 @@ def parse_naf_list(naf_defs, include=None, exclude=None):  # pylint: disable=too
                     out_domains[dom] = vgroup
 
     return out_codes, out_domains
+
+
+def get_andidata_naflist(romes, include=None, exclude=None):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = f"{current_dir}/data_files/{ANDIDATA_FILE}.csv"
+    include_list = []
+    exclude_list = []
+    with open(filename) as csvfile:
+        rdr = csv.DictReader(
+            csvfile,
+            delimiter=',',
+            quotechar='"',
+            quoting=csv.QUOTE_MINIMAL,
+        )
+        for row in rdr:
+            if row['rome'] in romes:
+                include_list.append(row)
+            if include and row['rome'] in include:
+                include_list.append(row)
+            if exclude and row['rome'] in exclude:
+                exclude_list.append(row['naf'])
+
+    include_list[:] = [el for el in include_list if el['naf'] not in exclude_list]
+    logger.debug('raw naflist: %s', include_list)
+
+    out_list = {x['naf']: x['score'] for x in include_list}
+
+    return [out_list, {}]
 
 
 def get_naf_sql(rules):
@@ -242,16 +274,21 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, *args, **kwargs):  # pylint: disable=too-many-arguments
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rom2naf='def', *args, **kwargs):  # pylint: disable=too-many-arguments
     if max_distance == '':
         max_distance = 10
 
-    naf_def = get_rome_defs(romes)
-    logger.debug('Naf matching definitions:\n%s', json.dumps(naf_def, indent=2))
+    if rom2naf == 'def':
+        logger.debug('Naf2Rome "definition" method selected')
+        naf_def = get_rome_defs(romes)
+        logger.debug('Naf matching definitions:\n%s', json.dumps(naf_def, indent=2))
+        naf_rules = parse_naf_list(naf_def, includes, excludes)
+    elif rom2naf == 'andidata':
+        logger.debug('Naf2Rome "andidata" method selected')
+        naf_rules = get_andidata_naflist(romes, includes, excludes)
+        naf_def = False
 
-    naf_rules = parse_naf_list(naf_def, includes, excludes)
     logger.debug('Naf matching rules:\n%s', json.dumps(naf_rules, indent=2))
-
     naf_sql = get_naf_sql(naf_rules)
     logger.debug('Naf sql:\n%s', naf_sql)
 
