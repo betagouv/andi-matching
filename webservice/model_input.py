@@ -1,3 +1,4 @@
+# pylint: skip-file
 import uuid
 from datetime import datetime
 from enum import Enum
@@ -26,11 +27,25 @@ class CriteriaNames(str, Enum):
     rome_codes = 'rome_codes'
 
 
-class Criteria(BaseModel):
-    name: CriteriaNames = Schema(..., description="Type of the address value")
-    type: str = Schema(..., description="'Value' field data type")
-    value: Union[str, list, Json] = None
-    priority: PositiveInt = Schema(..., gt=0, lt=5, description="Priority (1 to 5)")
+class Criterion(BaseModel):
+    priority: PositiveInt = Schema(..., description="Priority (1 to 5) of the criterion")
+
+
+class Criterion_Distance(Criterion):
+    name: str = Schema('distance', const=True, description="Name of criteria")
+    distance_km: int
+
+
+class RomeCode(BaseModel):
+    id: str = Schema('...', description="Rome ID")
+    include: bool = Schema(True, description="Include all NAF codes related to ROME")
+    exclude: bool = Schema(False, description="Exclude all NAF codes related to ROME")
+
+
+class Criterion_RomeCodes(Criterion):
+    name: str = Schema('rome_codes', const=True, description="Name of criteria")
+    rome_list: List[RomeCode] = Schema(..., description="List of rome codes")
+    exclude_naf: list = Schema([], description="List of naf codes to exclude")
 
 
 class Model(BaseModel):
@@ -42,7 +57,10 @@ class Model(BaseModel):
     query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
     session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
     address: Address = Schema(..., description="query base address")
-    criteria: List[Criteria] = Schema([], description="List of criteria")
+    criteria: List[Union[
+        Criterion_Distance,
+        Criterion_RomeCodes,
+    ]] = Schema([], description="List of criteria")
 
     class Config:
         schema_extra = {
@@ -57,16 +75,14 @@ class Model(BaseModel):
                 },
                 'criteria': [
                     {
+                        'priority': 2,
                         'name': 'distance',
-                        'type': 'integer',
-                        'value': 10,
-                        'priority': 3
+                        'distance_km': 10
                     },
                     {
+                        'priority': 5,
                         'name': 'rome_codes',
-                        'type': 'object_list',
-                        'value': [{'code': 'M1805', 'priority': 3}],
-                        'priority': 5
+                        'rome_list': [{'id': 'M1805', 'include': True}]
                     }
                 ]
             }}

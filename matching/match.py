@@ -115,6 +115,7 @@ def run_drive(ctx, profile, list_flag):
 @click.option('--lon', help="longitude", default='2.0861')
 @click.option('--max-distance', help="Max distance (km)", default=10)
 @click.option('--rome', help="rome code", multiple=True, default=None)
+@click.option('--rome2naf', help="rome 2 naf method", default='def')
 @click.option('--include', help="Include naf code", multiple=True, default=None)
 @click.option('--exclude', help="Exclude naf code", multiple=True, default=None)
 @click.option('--tpe/--no-tpe', help="Include 'Très Petites Entreprises' < 10 pers", default=None)
@@ -122,7 +123,7 @@ def run_drive(ctx, profile, list_flag):
 @click.option('--eti/--no-eti', help="Include 'Entreprises de Taille Intermédiaire' 250 - 4999 pers", default=None)
 @click.option('--ge/--no-ge', help="Include 'Grandes Entreprises' > 5000 pers", default=None)
 @click.pass_context
-def run_csv(ctx, csv_file, lat, lon, max_distance, rome, include, exclude, tpe, pme, eti, ge):
+def run_csv(ctx, csv_file, lat, lon, max_distance, rome, rome2naf, include, exclude, tpe, pme, eti, ge):
     cfg = ctx.obj['cfg']
     logger.info(
         'Matching started, lat/lon %s/%s, max %s km, ROME: %s',
@@ -150,7 +151,7 @@ def run_csv(ctx, csv_file, lat, lon, max_distance, rome, include, exclude, tpe, 
         'fc': 3,
     }
 
-    results = lib_match.run_profile(cfg, lat, lon, max_distance, rome, include, exclude, sizes, multipliers)
+    results = lib_match.run_profile(cfg, lat, lon, max_distance, rome, include, exclude, sizes, multipliers, rome2naf)
 
     show_results(results[:20])
 

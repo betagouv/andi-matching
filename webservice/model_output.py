@@ -1,3 +1,4 @@
+# pylint: skip-file
 import uuid
 from datetime import datetime
 from enum import Enum

@@ -1,42 +1,54 @@
 #!/usr/bin/env python3
 import argparse
-import uuid
 import logging
+import math
 import os
 import sys
+import uuid
 from datetime import datetime
+from functools import reduce
 
 import pytz
 import uvicorn
 import yaml
-import math
 from fastapi import FastAPI
+from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 
-from library import (
-    geo_code_query,
-    get_codes,
-    rome_list_query
-)
+import criterion_parser
+from library import geo_code_query, get_codes, rome_list_query
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
-from model_rome_suggest import Model as RomeResponseModel
-from model_rome_suggest import InputModel as RomeInputModel
-from pydantic import PositiveInt
+from model_rome_suggest import (
+    InputModel as RomeInputModel,
+    Model as RomeResponseModel
+)
 
 sys.path.append(os.path.dirname(__file__))
 
 """
 TODO:
-- return error structure
-V integrate with matchn backend
 - add behave testing
 - monitoring
 """
 VERSION = 1
 START_TIME = datetime.now(pytz.utc)
 COUNTER = 0
+
+DEFAULT_MATCHING_PARAMS = {
+    'includes': [],
+    'excludes': [],
+    'sizes': ['pme'],
+    'multipliers': {
+        'fg': 1,
+        'fn': 5,
+        'ft': 3,
+        'fw': 2,
+        'fc': 1,
+    },
+    'rome2naf': 'andidata',
+}
 
 # ################################################### SETUP AND ARGUMENT PARSING
 # ##############################################################################
@@ -82,18 +94,13 @@ def get_trace_obj(query):
     }
 
 
-def get_parameters(_criteria):
-    # FIXME: To be continued...
-    return {
-        'max_distance': 6,
-        'romes': ['H2207'],
-        'includes': [],
-        'excludes': [],
-        'sizes': ['pme'],
-        'multipliers': {
-            'fg': 5
-        },
-    }
+def parse_param(accumulator, criterion):
+    res = getattr(criterion_parser, criterion.name)(criterion, accumulator)
+    return res
+
+
+def get_parameters(criteria):
+    return reduce(parse_param, criteria, DEFAULT_MATCHING_PARAMS)
 
 
 async def get_address_coords(address):
@@ -173,7 +180,7 @@ async def matching(query: QueryModel):
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
     """
-    global COUNTER
+    global COUNTER  # pylint:disable=global-statement
     COUNTER += 1
     logger.debug(query)
     trace = get_trace_obj(query)
@@ -182,10 +189,10 @@ async def matching(query: QueryModel):
     logger.debug('Query params: %s', params)
     raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
     logger.debug('raw responses:')
-    logger.debug(yaml.dump(raw_data))
+    logger.debug(yaml.dump(raw_data[:4]))
     data = await make_data(raw_data)
     logger.debug('clean responses:')
-    logger.debug(yaml.dump(data))
+    logger.debug(yaml.dump(data[:4]))
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),
@@ -200,7 +207,7 @@ async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp:
     Rome suggestion endpoint:
     Query rome code suggestions according to input string.
     """
-    global COUNTER
+    global COUNTER  # pylint:disable=global-statement
     COUNTER += 1
     query_id = uuid.uuid4()
     raw_query = {

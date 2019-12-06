@@ -15,13 +15,13 @@ pylint-fail-under:
 	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
 
 serve-dev:
-	export PYTHONPATH=$PYTHONPATH:./ && pipenv run ./webservice/main.py --debug
+	export PYTHONPATH=${PYTHONPATH}:./ && pipenv run ./webservice/main.py --debug
 
 serve:
-	export PYTHONPATH=$PYTHONPATH:./ && ./webservice/main.py
+	export PYTHONPATH=${PYTHONPATH}:./ && ./webservice/main.py
 
 unittests:
-	PYTHONPATH=$PYTHONPATH:./:./matching:./webservice pipenv run pytest --cov=./webservice .
+	PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice pipenv run pytest --cov=./webservice .
 
 isort:
 	pipenv run isort ./**/*.py

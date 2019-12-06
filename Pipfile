@@ -24,6 +24,7 @@ fastapi = "*"
 uvicorn = "*"
 pytz = "*"
 aiohttp = "*"
+email-validator = "*"
 
 [requires]
 python_version = "3.7"

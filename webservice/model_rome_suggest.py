@@ -1,8 +1,10 @@
+# pylint: skip-file
 import uuid
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, Schema, PositiveInt
+from pydantic import BaseModel, PositiveInt, Schema
+
 
 """
 Rome returned by LaBonneBoite:
