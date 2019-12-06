@@ -1,7 +1,7 @@
+import csv
 import json
 import logging
 import os
-import csv
 from collections import OrderedDict
 from urllib.parse import quote_plus
 
@@ -76,7 +76,8 @@ def parse_naf_list(naf_defs, include=None, exclude=None):  # pylint: disable=too
     codes = {str(i): set() for i in range(1, int(MAX_VALUE_GROUP) + 1)}
     domains = {str(i): set() for i in range(1, int(MAX_VALUE_GROUP) + 1)}
 
-    [codes[MAX_VALUE_GROUP].add(naf) for naf in include]
+    for naf in include:
+        codes[MAX_VALUE_GROUP].add(naf)
 
     # def clean(l, n):
     #     if n in l:
@@ -274,7 +275,7 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def', *args, **kwargs):  # pylint: disable=too-many-arguments
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def'):  # pylint: disable=too-many-arguments
     if max_distance == '':
         max_distance = 10
 

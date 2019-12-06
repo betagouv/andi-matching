@@ -1,31 +1,29 @@
 #!/usr/bin/env python3
 import argparse
-import uuid
 import logging
+import math
 import os
 import sys
+import uuid
 from datetime import datetime
+from functools import reduce
 
 import pytz
 import uvicorn
 import yaml
-import math
-from functools import reduce
 from fastapi import FastAPI
+from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 
-from library import (
-    geo_code_query,
-    get_codes,
-    rome_list_query
-)
+import criterion_parser
+from library import geo_code_query, get_codes, rome_list_query
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
-from model_rome_suggest import Model as RomeResponseModel
-from model_rome_suggest import InputModel as RomeInputModel
-import criterion_parser
-from pydantic import PositiveInt
+from model_rome_suggest import (
+    InputModel as RomeInputModel,
+    Model as RomeResponseModel
+)
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -182,7 +180,7 @@ async def matching(query: QueryModel):
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
     """
-    global COUNTER
+    global COUNTER  # pylint:disable=global-statement
     COUNTER += 1
     logger.debug(query)
     trace = get_trace_obj(query)
@@ -209,7 +207,7 @@ async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp:
     Rome suggestion endpoint:
     Query rome code suggestions according to input string.
     """
-    global COUNTER
+    global COUNTER  # pylint:disable=global-statement
     COUNTER += 1
     query_id = uuid.uuid4()
     raw_query = {

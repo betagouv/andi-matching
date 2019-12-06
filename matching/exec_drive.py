@@ -15,8 +15,8 @@ SHEED_ID = '1686694416'
 RANGE = 'Config_Matching!A:N'
 
 
-def get_data(config):
-    from match import logger
+def get_data(_config):
+    from match import logger  # pylint:disable=import-outside-toplevel
     service = get_service()
     profiles = get_profiles(service)
     logger.info('Obtained %s profiles from google drive', len(profiles))
