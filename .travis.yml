@@ -42,9 +42,8 @@ jobs:
     python: 3.7
     if: branch = master AND type = push AND fork = false
     script:
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TRAVIS_COMMIT
-      || sleep 5 && true"
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching || sleep 5 && true"
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TRAVIS_COMMIT && sleep 5 || :"
+    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching && sleep 4 || :"
     - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:$PORT
       --add-host=database:172.17.0.1
       --ip 172.17.0.6
