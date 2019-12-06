@@ -38,6 +38,20 @@ VERSION = 1
 START_TIME = datetime.now(pytz.utc)
 COUNTER = 0
 
+DEFAULT_MATCHING_PARAMS = {
+    'includes': [],
+    'excludes': [],
+    'sizes': ['pme'],
+    'multipliers': {
+        'fg': 1,
+        'fn': 5,
+        'ft': 3,
+        'fw': 2,
+        'fc': 1,
+    },
+    'rome2naf': 'andidata',
+}
+
 # ################################################### SETUP AND ARGUMENT PARSING
 # ##############################################################################
 logger = logging.getLogger(__name__)
@@ -83,35 +97,12 @@ def get_trace_obj(query):
 
 
 def parse_param(accumulator, criterion):
-    logger.debug('Parsing criterion: %s - accumulator: %s', criterion, accumulator)
     res = getattr(criterion_parser, criterion.name)(criterion, accumulator)
-    import json
-    logger.debug(json.dumps(res, indent=2))
     return res
 
 
 def get_parameters(criteria):
-    logger.debug('criteria received: %s', criteria)
-    # Functional-style 'fold' call: short & effective
-    base_settings = {
-        'includes': [],
-        'excludes': [],
-        'sizes': ['pme'],
-        'multipliers': {
-            'fg': 5
-        },
-    }
-    return reduce(parse_param, criteria, base_settings)
-    # return {
-    #     'max_distance': 6,
-    #     'romes': ['H2207'],
-    #     'includes': [],
-    #     'excludes': [],
-    #     'sizes': ['pme'],
-    #     'multipliers': {
-    #         'fg': 5
-    #     },
-    # }
+    return reduce(parse_param, criteria, DEFAULT_MATCHING_PARAMS)
 
 
 async def get_address_coords(address):
@@ -198,13 +189,12 @@ async def matching(query: QueryModel):
     lat, lon = await get_address_coords(query.address)
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
-    raise SystemError('Fin Test')
     raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
     logger.debug('raw responses:')
-    logger.debug(yaml.dump(raw_data))
+    logger.debug(yaml.dump(raw_data[:4]))
     data = await make_data(raw_data)
     logger.debug('clean responses:')
-    logger.debug(yaml.dump(data))
+    logger.debug(yaml.dump(data[:4]))
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),

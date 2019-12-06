@@ -27,7 +27,7 @@ class CriteriaNames(str, Enum):
 
 
 class Criterion(BaseModel):
-    priority: PositiveInt = Schema(..., description="Priority (1 to 5)")
+    priority: PositiveInt = Schema(..., description="Priority (1 to 5) of the criterion")
 
 
 class Criterion_Distance(Criterion):
@@ -74,7 +74,7 @@ class Model(BaseModel):
                 },
                 'criteria': [
                     {
-                        'priority': 3,
+                        'priority': 2,
                         'name': 'distance',
                         'distance_km': 10
                     },

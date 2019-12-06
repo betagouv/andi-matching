@@ -274,16 +274,16 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rom2naf='def', *args, **kwargs):  # pylint: disable=too-many-arguments
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def', *args, **kwargs):  # pylint: disable=too-many-arguments
     if max_distance == '':
         max_distance = 10
 
-    if rom2naf == 'def':
+    if rome2naf == 'def':
         logger.debug('Naf2Rome "definition" method selected')
         naf_def = get_rome_defs(romes)
         logger.debug('Naf matching definitions:\n%s', json.dumps(naf_def, indent=2))
         naf_rules = parse_naf_list(naf_def, includes, excludes)
-    elif rom2naf == 'andidata':
+    elif rome2naf == 'andidata':
         logger.debug('Naf2Rome "andidata" method selected')
         naf_rules = get_andidata_naflist(romes, includes, excludes)
         naf_def = False
