@@ -10,6 +10,7 @@ import pytz
 import uvicorn
 import yaml
 import math
+from functools import reduce
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
@@ -23,14 +24,13 @@ from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
 from model_rome_suggest import Model as RomeResponseModel
 from model_rome_suggest import InputModel as RomeInputModel
+import criterion_parser
 from pydantic import PositiveInt
 
 sys.path.append(os.path.dirname(__file__))
 
 """
 TODO:
-- return error structure
-V integrate with matchn backend
 - add behave testing
 - monitoring
 """
@@ -82,11 +82,18 @@ def get_trace_obj(query):
     }
 
 
-def get_parameters(_criteria):
-    # FIXME: To be continued...
-    return {
-        'max_distance': 6,
-        'romes': ['H2207'],
+def parse_param(accumulator, criterion):
+    logger.debug('Parsing criterion: %s - accumulator: %s', criterion, accumulator)
+    res = getattr(criterion_parser, criterion.name)(criterion, accumulator)
+    import json
+    logger.debug(json.dumps(res, indent=2))
+    return res
+
+
+def get_parameters(criteria):
+    logger.debug('criteria received: %s', criteria)
+    # Functional-style 'fold' call: short & effective
+    base_settings = {
         'includes': [],
         'excludes': [],
         'sizes': ['pme'],
@@ -94,6 +101,17 @@ def get_parameters(_criteria):
             'fg': 5
         },
     }
+    return reduce(parse_param, criteria, base_settings)
+    # return {
+    #     'max_distance': 6,
+    #     'romes': ['H2207'],
+    #     'includes': [],
+    #     'excludes': [],
+    #     'sizes': ['pme'],
+    #     'multipliers': {
+    #         'fg': 5
+    #     },
+    # }
 
 
 async def get_address_coords(address):
@@ -180,6 +198,7 @@ async def matching(query: QueryModel):
     lat, lon = await get_address_coords(query.address)
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
+    raise SystemError('Fin Test')
     raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
     logger.debug('raw responses:')
     logger.debug(yaml.dump(raw_data))
