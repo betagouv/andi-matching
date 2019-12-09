@@ -115,6 +115,25 @@ async def get_address_coords(address):
 
 
 async def make_data(responses=None):
+    """
+    Create response data obect:
+
+    {
+        'id': '12',
+        'name': 'Pains d\'Amandine',
+        'address': 'ADDRESSE',
+        'departement': '29',
+        'city': 'Cergy',
+        'coords': {'lat': 93.123, 'lon': 83.451},
+        'size': 'pme',
+        'naf': '7711A',
+        'siret': '21398102938',
+        'distance': 54,
+        'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
+        'score': 53,
+        'activity': 'Boulangerie',
+    }
+    """
     return [{
         'id': r['id'],
         'name': r['nom'],
@@ -136,22 +155,6 @@ async def make_data(responses=None):
         'score': r['score_total'],
         'activity': r['sector']
     } for r in responses]
-
-    # return [{
-    #     'id': '12',
-    #     'name': 'Pains d\'Amandine',
-    #     'address': 'ADDRESSE',
-    #     'departement': '29',
-    #     'city': 'Cergy',
-    #     'coords': {'lat': 93.123, 'lon': 83.451},
-    #     'size': 'pme',
-    #     'naf': '7711A',
-    #     'siret': '21398102938',
-    #     'distance': 54,
-    #     'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
-    #     'score': 53,
-    #     'activity': 'Boulangerie',
-    # }]
 
 
 # ################################################################ SERVER ROUTES
