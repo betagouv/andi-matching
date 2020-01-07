@@ -72,7 +72,7 @@ FROM
         entreprises e
     LEFT JOIN
         naf ON e.naf = naf.sous_classe_a_732
-    CROSS JOIN 
+    CROSS JOIN
         (SELECT ST_MakePoint(%(lon)s, %(lat)s)::geography AS orig_geom) AS r
     WHERE
         ST_DWithin(geom, orig_geom, 10 * 1000)
