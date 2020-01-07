@@ -153,7 +153,7 @@ def get_naf_sql(rules):
     Get sql rules to select naf code
     '''
     codes, domains = rules
-    sql = ['CASE e.naf']
+    sql = []
     for naf, value in codes.items():
         sql.append(f'WHEN \'{naf}\' THEN {value}')
 
@@ -167,8 +167,6 @@ def get_naf_sql(rules):
 
     if domains:
         sql.append('END')
-
-    sql.append('END AS score')
 
     return "\n".join(sql)
 
@@ -263,12 +261,11 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
 
     root = {k: sub_maxvg(MAX_VALUE_GROUP, v) for k, v in root.items()}
 
-    sql = ['CASE e.taille']
+    sql = []
     for k, v in root.items():
         sql.append(f'WHEN \'{k}\' THEN {v}')
 
     sql.append('ELSE 1')
-    sql.append('END AS score')
 
     return "\n".join(sql)
 

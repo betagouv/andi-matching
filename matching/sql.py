@@ -1,38 +1,88 @@
-"""
-Naf rule example:
-    CASE company.naf
-        WHEN '3220Z' THEN 3
-        WHEN '3240Z' THEN 3
-        WHEN '3101Z' THEN 3
-        WHEN '1629Z' THEN 3
-    ELSE
-        CASE substring(company.naf, 0, 3)
-            WHEN '31' THEN 2
-            WHEN '32' THEN 2
-            WHEN '16' THEN 2
-            ELSE 1
-        END
-    END AS score
-
-Size rule example:
-    CASE company.taille
-        WHEN '3-5' THEN 2
-        WHEN '6-9' THEN 3
-        WHEN '10-19' THEN 3
-        WHEN '20-49' THEN 3
-        WHEN '50-99' THEN 3
-        WHEN '100-199' THEN 3
-        WHEN '200-249' THEN 2
-        WHEN '250-499' THEN 2
-        WHEN '500-999' THEN 2
-        WHEN '1000-1999' THEN 2
-        WHEN '2000-4999' THEN 2
-        WHEN '5000-9999' THEN 2
-        ELSE 1
-    END AS score
-"""
-
 MATCH_QUERY = '''
+SELECT
+    id_internal AS id,
+    nom,
+    label,
+    siret,
+    taille,
+    naf,
+    sector,
+    commune,
+    departement,
+    adresse,
+    round(prm.dist/1000) || ' km' AS distance,
+    prm.lat AS lat,
+    prm.lon AS lon,
+    prm.siret AS siret,
+    score_naf,
+    score_welcome,
+    score_contact,
+    score_size,
+    score_geo,
+    (   score_geo * 1 +
+        score_size * 3 +
+        score_contact * 3 +
+        score_welcome * 3 + score_naf * 5 
+    )
+    AS score_total
+FROM
+   (
+   SELECT
+        id_internal,
+        nom,
+        lat,
+        lon,
+        siret,
+        commune,
+        label as adresse,
+        departement,
+        naf,
+        naf.intitule_de_la_naf_rev_2 AS sector,
+        ST_Distance(geom, orig_geom)
+            AS dist,
+        -- crit geo ---------------------------------------------
+        6 - NTILE(5) OVER(
+            ORDER BY ST_Distance(geom, orig_geom) ASC
+        ) AS score_geo,
+        -- crit naf ----------------------------------------------
+        CASE e.naf
+            {naf_rules}
+        END AS score_naf,
+        -- crit size ---------------------------------------------
+        CASE e.taille
+            {size_rules}
+        END AS score_size,
+        -- crit welcome ------------------------------------------
+        CASE
+            WHEN e.pmsmp_interest THEN 3
+            WHEN (e.pmsmp_interest) AND (e.pmsmp_count_recent > 0) THEN 5
+            ELSE 1
+        END AS score_welcome,
+        -- crit contact ------------------------------------------
+        CASE
+            WHEN (COALESCE(e.email_official, '') <> '')
+            OR (COALESCE(e.contact_1_phone, '') <> '')
+            OR (COALESCE(e.contact_2_phone, '') <> '') THEN 3
+            WHEN (COALESCE(e.contact_1_mail, '') <> '')
+            OR (COALESCE(e.contact_2_mail, '') <> '') THEN 5
+            ELSE 1
+        END AS score_contact
+    FROM
+        entreprises e
+    LEFT JOIN
+        naf ON e.naf = naf.sous_classe_a_732
+    CROSS JOIN 
+        (SELECT ST_MakePoint(%(lon)s, %(lat)s)::geography AS orig_geom) AS r
+    WHERE
+        ST_DWithin(geom, orig_geom, 10 * 1000)
+    ORDER BY dist ASC
+    ) AS prm
+ORDER BY score_total DESC
+LIMIT 100;
+'''
+
+
+'''
 WITH comp_pos AS (
     SELECT
         id_internal,
