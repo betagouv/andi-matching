@@ -2,7 +2,7 @@ MATCH_QUERY = '''
 SELECT
     id_internal AS id,
     nom,
-    label,
+    adresse,
     siret,
     taille,
     naf,
@@ -22,7 +22,7 @@ SELECT
     (   score_geo * 1 +
         score_size * 3 +
         score_contact * 3 +
-        score_welcome * 3 + score_naf * 5 
+        score_welcome * 3 + score_naf * 5
     )
     AS score_total
 FROM
@@ -37,6 +37,7 @@ FROM
         label as adresse,
         departement,
         naf,
+        taille,
         naf.intitule_de_la_naf_rev_2 AS sector,
         ST_Distance(geom, orig_geom)
             AS dist,
