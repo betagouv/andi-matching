@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, PositiveInt, Schema
+from pydantic import BaseModel, Field, PositiveInt
 
 
 """
@@ -21,11 +21,11 @@ Rome returned by LaBonneBoite:
 
 
 class InputModel(BaseModel):
-    v: PositiveInt = Schema(..., alias='_v', description="Version")
-    timestamp: datetime = Schema(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
-    query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
-    needle: str = Schema(..., description="Search string")
+    v: PositiveInt = Field(..., alias='_v', description="Version")
+    timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
+    query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
+    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    needle: str = Field(..., description="Search string")
 
 
 class RomeSuggestion(BaseModel):
@@ -41,8 +41,8 @@ class Model(BaseModel):
     Modèle des données sortantes de l'api suggestion code ROME
     Calqué sur l'API de La Bonne Boîte
     """
-    v: PositiveInt = Schema(..., alias='_v', description="Version")
-    timestamp: datetime = Schema(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
-    query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
-    data: List[RomeSuggestion] = Schema([], description="List of rome suggestions")
+    v: PositiveInt = Field(..., alias='_v', description="Version")
+    timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
+    query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
+    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    data: List[RomeSuggestion] = Field([], description="List of rome suggestions")

@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime
 from functools import reduce
 
+import pandas as pd
 import pytz
 import uvicorn
 import yaml
@@ -16,7 +17,12 @@ from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 
 import criterion_parser
-from library import geo_code_query, get_codes, rome_list_query
+from library import (  # rome_list_query,
+    geo_code_query,
+    get_codes,
+    normalize,
+    rome_suggest
+)
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
@@ -29,12 +35,12 @@ sys.path.append(os.path.dirname(__file__))
 
 """
 TODO:
-- add behave testing
 - monitoring
 """
 VERSION = 1
 START_TIME = datetime.now(pytz.utc)
 COUNTER = 0
+SUGGEST_COUNTER = 0
 
 DEFAULT_MATCHING_PARAMS = {
     'includes': [],
@@ -82,6 +88,16 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+logger.info('Compiling dataframe references')
+current_dir = os.path.dirname(os.path.abspath(__file__))
+ROME_DF = pd.read_csv(f'{current_dir}/referentiels/rome_lbb.csv')
+ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
+OGR_DF = pd.read_csv(f'{current_dir}/referentiels/ogr_lbb.csv')
+OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
+ROME_DF['stack'] = ROME_DF.apply(lambda x: normalize(x['label']), axis=1)
+OGR_DF['stack'] = OGR_DF.apply(lambda x: normalize(x['label']), axis=1)
+logger.info('Dataframe compilation done')
 
 
 # ################################################################ MATCHING FLOW
@@ -174,6 +190,7 @@ def root():
         'uptime': f'{delta_s} seconds | {divmod(delta_s, 60)[0]} minutes | {divmod(delta_s, 86400)[0]} days',
         'api_version': VERSION,
         'api_counter': COUNTER,
+        'api_suggest_counter': SUGGEST_COUNTER,
     }
 
 
@@ -205,13 +222,13 @@ async def matching(query: QueryModel):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string.
     """
-    global COUNTER  # pylint:disable=global-statement
-    COUNTER += 1
+    global SUGGEST_COUNTER  # pylint:disable=global-statement
+    SUGGEST_COUNTER += 1
     query_id = uuid.uuid4()
     raw_query = {
         '_v': _v,
@@ -225,7 +242,8 @@ async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp:
 
     trace = get_trace_obj(query)
     logger.debug('Running query...')
-    rome_list = await rome_list_query(query.needle)
+    # rome_list = await rome_list_query(query.needle)
+    rome_list = rome_suggest(query.needle, ROME_DF, OGR_DF)
     logger.debug('Obtained %s results', len(rome_list))
     return {
         '_v': VERSION,

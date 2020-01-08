@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel, PositiveInt, Schema
+from pydantic import BaseModel, Field, PositiveInt
 
 
 """
@@ -83,12 +83,12 @@ class Model(BaseModel):
     """
     Modèle de validation des résultats de l'outil de matching
     """
-    v: PositiveInt = Schema(..., alias='_v', description="Version")
-    timestamp: datetime = Schema(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
-    query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
-    trace: str = Schema(..., alias='_trace', description="Trace ID")
-    data: List[ResponseData] = Schema(..., description="response data")
+    v: PositiveInt = Field(..., alias='_v', description="Version")
+    timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
+    query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
+    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    trace: str = Field(..., alias='_trace', description="Trace ID")
+    data: List[ResponseData] = Field(..., description="response data")
 
     class Config:
         schema_extra = {
