@@ -8,21 +8,20 @@ import uuid
 from datetime import datetime
 from functools import reduce
 
+import pandas as pd
 import pytz
 import uvicorn
 import yaml
-import pandas as pd
 from fastapi import FastAPI
 from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 
 import criterion_parser
-from library import (
+from library import (  # rome_list_query,
     geo_code_query,
     get_codes,
-    rome_list_query,
     normalize,
-    rome_suggest,
+    rome_suggest
 )
 from matching import lib_match
 from model_input import Model as QueryModel
@@ -223,7 +222,7 @@ async def matching(query: QueryModel):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string.

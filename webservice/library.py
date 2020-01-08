@@ -1,8 +1,9 @@
 import json
 import logging
-import pandas as pd
-import aiohttp
 import string
+
+import aiohttp
+import pandas as pd
 import unidecode
 
 logger = logging.getLogger(__name__)
@@ -46,9 +47,10 @@ async def rome_list_query(query):
             # FIXME: API response content-type is not json
             # return await response.json()
 
+
 def normalize(txt):
     # Remove punctuation
-    table = str.maketrans(string.punctuation, ' '*len(string.punctuation))
+    table = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
     txt = txt.translate(table)
 
     # Lowercase
