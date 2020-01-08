@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Union
 
-from pydantic import BaseModel, Json, PositiveInt, Schema
+from pydantic import BaseModel, Json, PositiveInt, Field
 
 
 """
@@ -18,7 +18,7 @@ class AddressTypes(str, Enum):
 
 
 class Address(BaseModel):
-    type: AddressTypes = Schema(..., description="AddressType")
+    type: AddressTypes = Field(..., description="AddressType")
     value: Union[str, Json] = None
 
 
@@ -28,39 +28,39 @@ class CriteriaNames(str, Enum):
 
 
 class Criterion(BaseModel):
-    priority: PositiveInt = Schema(..., description="Priority (1 to 5) of the criterion")
+    priority: PositiveInt = Field(..., description="Priority (1 to 5) of the criterion")
 
 
 class Criterion_Distance(Criterion):
-    name: str = Schema('distance', const=True, description="Name of criteria")
+    name: str = Field('distance', const=True, description="Name of criteria")
     distance_km: int
 
 
 class RomeCode(BaseModel):
-    id: str = Schema('...', description="Rome ID")
-    include: bool = Schema(True, description="Include all NAF codes related to ROME")
-    exclude: bool = Schema(False, description="Exclude all NAF codes related to ROME")
+    id: str = Field('...', description="Rome ID")
+    include: bool = Field(True, description="Include all NAF codes related to ROME")
+    exclude: bool = Field(False, description="Exclude all NAF codes related to ROME")
 
 
 class Criterion_RomeCodes(Criterion):
-    name: str = Schema('rome_codes', const=True, description="Name of criteria")
-    rome_list: List[RomeCode] = Schema(..., description="List of rome codes")
-    exclude_naf: list = Schema([], description="List of naf codes to exclude")
+    name: str = Field('rome_codes', const=True, description="Name of criteria")
+    rome_list: List[RomeCode] = Field(..., description="List of rome codes")
+    exclude_naf: list = Field([], description="List of naf codes to exclude")
 
 
 class Model(BaseModel):
     """
     Modèle de validation des requêtes de l'outil de matching
     """
-    v: PositiveInt = Schema(..., alias='_v', description="Version")
-    timestamp: datetime = Schema(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
-    query_id: uuid.UUID = Schema(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Schema(..., alias='_session_id', description="browser session UUID")
-    address: Address = Schema(..., description="query base address")
+    v: PositiveInt = Field(..., alias='_v', description="Version")
+    timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
+    query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
+    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    address: Address = Field(..., description="query base address")
     criteria: List[Union[
         Criterion_Distance,
         Criterion_RomeCodes,
-    ]] = Schema([], description="List of criteria")
+    ]] = Field([], description="List of criteria")
 
     class Config:
         schema_extra = {

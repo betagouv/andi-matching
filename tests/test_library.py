@@ -1,8 +1,8 @@
 import json
-
 import pytest
-
 import library
+import os
+import pandas as pd
 
 
 """
@@ -68,4 +68,28 @@ async def test_get_rome_suggestions():
     print(json.dumps(out, indent=2))
     assert out is not None
     assert len(out) == 4
-    assert out[0].get('id') == "K2401"
+    found = False
+    for res in out:
+        if res.get('id') == 'K2401':
+            found = True
+    assert found
+
+
+def test_get_rome_suggest():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    ROME_DF = pd.read_csv(f'{current_dir}/../webservice/referentiels/rome_lbb.csv')
+    ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
+    OGR_DF = pd.read_csv(f'{current_dir}/../webservice/referentiels/ogr_lbb.csv')
+    OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
+    ROME_DF['stack'] = ROME_DF.apply(lambda x: library.normalize(x['label']), axis=1)
+    OGR_DF['stack'] = OGR_DF.apply(lambda x: library.normalize(x['label']), axis=1)
+
+    out = library.rome_suggest("phil", ROME_DF, OGR_DF)
+    print(json.dumps(out, indent=2))
+    assert out is not None
+    assert len(out) == 4
+    found = False
+    for res in out:
+        if res.get('id') == 'K2401':
+            found = True
+    assert found
