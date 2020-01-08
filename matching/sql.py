@@ -19,10 +19,11 @@ SELECT
     score_contact,
     score_size,
     score_geo,
-    (   score_geo * 1 +
-        score_size * 3 +
-        score_contact * 3 +
-        score_welcome * 3 + score_naf * 5
+    (   score_geo * %(mul_geo)s +
+        score_size * %(mul_siz)s +
+        score_contact * %(mul_con)s +
+        score_welcome * %(mul_wel)s +
+        score_naf * %(mul_naf)s
     )
     AS score_total
 FROM
@@ -75,8 +76,9 @@ FROM
     CROSS JOIN
         (SELECT ST_MakePoint(%(lon)s, %(lat)s)::geography AS orig_geom) AS r
     WHERE
-        ST_DWithin(geom, orig_geom, 10 * 1000)
+        ST_DWithin(geom, orig_geom, %(dist)s * 1000)
     ORDER BY dist ASC
+    {limit_test}
     ) AS prm
 ORDER BY score_total DESC
 LIMIT 100;
