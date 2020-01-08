@@ -105,7 +105,6 @@ def rome_suggest(query, rome_df, ogr_df):
         )
 
     for _i, ogr_row in ogr_matches.iterrows():
-        print(ogr_row)
         rome = ogr_row['rome']
         ogr_romes = rome_df[rome_df['rome'] == rome]
         for _j, rome_row in ogr_romes.iterrows():
