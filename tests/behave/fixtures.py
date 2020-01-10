@@ -1,9 +1,9 @@
-from behave import fixture
+import logging
+from time import sleep
 from multiprocessing import Process
 import uvicorn
-import logging
+from behave import fixture
 from webservice import main
-from time import sleep
 
 PORT = 5555
 HOST = 'localhost'
@@ -14,7 +14,7 @@ def run_server():
 
 
 @fixture
-def matching_api(context, **kwargs):
+def matching_api(_context, **kwargs):
     proc = Process(target=run_server, args=(), daemon=True)
     logging.info('Starting server subprocess')
     proc.start()

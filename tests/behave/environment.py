@@ -1,3 +1,4 @@
+# pylint: skip-file
 from behave import use_fixture
 from fixtures import matching_api, PORT, HOST
 

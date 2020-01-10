@@ -1,10 +1,11 @@
 import json
 import logging
 import string
-from fuzzywuzzy import fuzz
+
 import aiohttp
 import pandas as pd
 import unidecode
+from fuzzywuzzy import fuzz
 
 logger = logging.getLogger(__name__)
 

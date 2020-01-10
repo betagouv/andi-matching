@@ -1,3 +1,4 @@
+# pylint: disable=function-redefined
 import requests
 from behave import when, given, then
 
@@ -48,7 +49,7 @@ def step_impl(context):
     full_data = context.raw_response.json()
     print(full_data)
     data = full_data.get('data')
-    assert type(data) == list
+    assert isinstance(data, list)
     assert len(data) == 0
 
 
