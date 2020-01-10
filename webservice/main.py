@@ -222,7 +222,7 @@ async def matching(query: QueryModel):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def api_rome_suggest(q: str, _sid: uuid.UUID, _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string.

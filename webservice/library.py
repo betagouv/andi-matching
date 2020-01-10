@@ -82,6 +82,8 @@ def normalize(txt):
 
 
 def words_get(raw_query):
+    if not raw_query:
+        return []
     query = normalize(raw_query)
     return query.split()
 
@@ -103,6 +105,8 @@ def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
 
 def rome_suggest(query, rome_df, ogr_df):
     words = words_get(query)
+    if len(words) == 0:
+        return []
     rome_raw_matches = []
     ogr_raw_matches = []
     for word in words:

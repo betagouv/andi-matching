@@ -1,6 +1,8 @@
 import requests
 from behave import when, given, then
 
+TEST_UUID = 'ffffffff-1111-2222-3333-ffffffffffff'
+
 
 @given(u'the api is available')
 def step_impl(context):
@@ -12,14 +14,48 @@ def step_impl(context):
 
 @when(u'we submit "{query}" to the rome_suggest endpoint')
 def step_impl(context, query):
-    raise NotImplementedError(u'STEP: When we submit "phil" to the rome_suggest endpoint')
+    r = requests.get(
+        f'http://{context.api_host}:{context.api_port}/rome_suggest',
+        params={
+            'q': query,
+            '_sid': TEST_UUID,
+            '_v': 1
+        })
+    context.raw_response = r
+
+
+@when(u'we submit an empty query to the rome_suggest endpoint')
+def step_impl(context):
+    r = requests.get(
+        f'http://{context.api_host}:{context.api_port}/rome_suggest',
+        params={
+            'q': '',
+            '_sid': TEST_UUID,
+            '_v': 1
+        })
+    context.raw_response = r
 
 
 @then(u'we receive multiple responses')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then we receive multiple responses')
+    data = context.raw_response.json()
+    context.response_data = data
+    assert len(data) > 0
+
+
+@then(u'we receive an empty array response')
+def step_impl(context):
+    full_data = context.raw_response.json()
+    print(full_data)
+    data = full_data.get('data')
+    assert type(data) == list
+    assert len(data) == 0
 
 
 @then(u'one of them is for rome code "{rome_code}"')
 def step_impl(context, rome_code):
-    raise NotImplementedError(u'STEP: Then one of them is for rome code "K1204"')
+    found = False
+    print(context.response_data)
+    for result in context.response_data.get('data'):
+        found = True if found else result.get('id') == rome_code
+    assert found
