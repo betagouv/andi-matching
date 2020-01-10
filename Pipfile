@@ -11,6 +11,7 @@ pylint-fail-under = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
+behave = "*"
 
 [packages]
 click = "*"

@@ -3,7 +3,7 @@
 install:
 	pipenv install --dev
 
-tests: flake8 pylint-fail-under unittests
+tests: flake8 pylint-fail-under unittests behave
 
 flake8:
 	pipenv run flake8
@@ -13,6 +13,12 @@ pylint:
 
 pylint-fail-under:
 	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
+
+behave:
+	export PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice && pipenv run behave tests/behave
+
+behave-debug:
+	pipenv run behave tests/behave --logging-level=DEBUG --no-logcapture
 
 serve-dev:
 	export PYTHONPATH=${PYTHONPATH}:./ && pipenv run ./webservice/main.py --debug
