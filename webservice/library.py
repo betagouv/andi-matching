@@ -5,10 +5,12 @@ import string
 import aiohttp
 import pandas as pd
 import unidecode
+from fuzzywuzzy import fuzz
 
 logger = logging.getLogger(__name__)
 
 
+# ## Geo-coding functions
 async def geo_code_query(query):
     """
     Query open geo-coding API from geo.api.gouv.fr
@@ -29,6 +31,7 @@ def get_codes(data):
     return lat, lon
 
 
+# ## Rome suggesting functions
 async def rome_list_query(query):
     """
     DEPRECATED
@@ -48,7 +51,19 @@ async def rome_list_query(query):
             # return await response.json()
 
 
+def score_build(query, match):
+    """
+    Return matching score used to order search results
+    fuzzywuzzy ratio calculates score on 100: we reduce that to 5 with 1 decimal
+    """
+    ratio = fuzz.ratio(query, match)
+    return(round(ratio / 20, 1))
+
+
 def normalize(txt):
+    """
+    Generic standaridzed text normalizing function
+    """
     # Remove punctuation
     table = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
     txt = txt.translate(table)
@@ -68,26 +83,31 @@ def normalize(txt):
 
 
 def words_get(raw_query):
+    if not raw_query:
+        return []
     query = normalize(raw_query)
     return query.split()
 
 
-def result_build(rome, rome_label, rome_slug, ogr_label=None):
+def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     if ogr_label:
         label = f"{rome_label} ({ogr_label}, ...)"
     else:
         label = rome_label
+
     return {
         'id': rome,
         'label': label,
         'value': label,
         'occupation': rome_slug,
-        'score': 5
+        'score': score
     }
 
 
 def rome_suggest(query, rome_df, ogr_df):
     words = words_get(query)
+    if len(words) == 0:
+        return []
     rome_raw_matches = []
     ogr_raw_matches = []
     for word in words:
@@ -99,6 +119,7 @@ def rome_suggest(query, rome_df, ogr_df):
     results = {}
     for _i, rome_row in rome_matches.iterrows():
         results[rome_row['rome']] = result_build(
+            score_build(query, rome_row['stack']),
             rome_row['rome'],
             rome_row['label'],
             rome_row['slug']
@@ -109,9 +130,12 @@ def rome_suggest(query, rome_df, ogr_df):
         ogr_romes = rome_df[rome_df['rome'] == rome]
         for _j, rome_row in ogr_romes.iterrows():
             results[rome] = result_build(
+                score_build(query, ogr_row['stack']),
                 rome,
                 rome_row['label'],
                 rome_row['slug'],
                 ogr_row['label']
             )
-    return list(results.values())
+
+    # Return sorted list of dictionnaries
+    return sorted(list(results.values()), key=lambda e: e['score'], reverse=True)

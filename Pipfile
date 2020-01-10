@@ -11,6 +11,7 @@ pylint-fail-under = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
+behave = "*"
 
 [packages]
 click = "*"
@@ -26,6 +27,8 @@ pytz = "*"
 aiohttp = "*"
 email-validator = "*"
 pandas = "*"
+python-levenshtein = "*"
+fuzzywuzzy = "*"
 
 [requires]
 python_version = "3.7"
