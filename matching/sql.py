@@ -10,7 +10,7 @@ SELECT
     commune,
     departement,
     adresse,
-    round(prm.dist::NUMERIC/1000, 1) || ' km' AS distance,
+    round(prm.dist::NUMERIC/1000, 1) AS distance,
     prm.lat AS lat,
     prm.lon AS lon,
     prm.siret AS siret,
