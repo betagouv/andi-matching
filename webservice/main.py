@@ -160,7 +160,8 @@ async def make_data(responses=None):
         'size': r['taille'],
         'naf': r['naf'],
         'siret': r['siret'],
-        'distance': int(''.join(list(filter(str.isdigit, r['distance'])))),
+        'distance': r['distance'],
+        #'distance': float(''.join(list(filter(str.isdigit, r['distance'])))),
         'scoring': {
             'geo': r['score_geo'],
             'size': r['score_size'],

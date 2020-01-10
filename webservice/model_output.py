@@ -73,7 +73,7 @@ class ResponseData(BaseModel):
     size: str = None
     naf: str
     siret: str
-    distance: int
+    distance: float
     scoring: Scoring
     score: int
     activity: str
