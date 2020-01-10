@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "99bdb03de4ffa560afb3564312c1b4c80ec2a78f2ed3c06b2144e1ffb9ca2a30"
+            "sha256": "3b5a27b1595ef41aed8b537eb42cf5bf0188b2061444d3a7a7da72814eabc74d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -93,11 +93,19 @@
         },
         "fastapi": {
             "hashes": [
-                "sha256:3f626eda9b6edaa17c90c21a4d0d1a97a2a2fcba43a55f8c425b6b37e832c8bb",
-                "sha256:44712863ca3899eb812a6869a2efe02d6be6ae972968c76a43d82ec472788f17"
+                "sha256:6c9b919f2ed742d2ad78e6dce5ad1be761e67292b838ba114cb525ec784d10a1",
+                "sha256:7f8d795be11e21675b6843424b378fe2ec95a14cecba1c53c68471412cca28c7"
             ],
             "index": "pypi",
-            "version": "==0.45.0"
+            "version": "==0.46.0"
+        },
+        "fuzzywuzzy": {
+            "hashes": [
+                "sha256:5ac7c0b3f4658d2743aa17da53a55598144edbc5bee3c6863840636e6926f254",
+                "sha256:6f49de47db00e1c71d40ad16da42284ac357936fa9b66bea1df63fed07122d62"
+            ],
+            "index": "pypi",
+            "version": "==0.17.0"
         },
         "google-api-python-client": {
             "hashes": [
@@ -285,10 +293,10 @@
         },
         "pyasn1-modules": {
             "hashes": [
-                "sha256:0c35a52e00b672f832e5846826f1fb7507907f7d52fba6faa9e3c4cbe874fe4b",
-                "sha256:b6ada4f840fe51abf5a6bd545b45bf537bea62221fa0dde2e8a553ed9f06a4e3"
+                "sha256:905f84c712230b2c592c19470d3ca8d552de726050d1d1716282a1f6146be65e",
+                "sha256:a50b808ffeb97cb3601dd25981f6b016cbb3d31fbf57a8b8a87428e6158d0c74"
             ],
-            "version": "==0.2.7"
+            "version": "==0.2.8"
         },
         "pydantic": {
             "hashes": [
@@ -315,6 +323,13 @@
                 "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"
             ],
             "version": "==2.8.1"
+        },
+        "python-levenshtein": {
+            "hashes": [
+                "sha256:033a11de5e3d19ea25c9302d11224e1a1898fe5abd23c61c7c360c25195e3eb1"
+            ],
+            "index": "pypi",
+            "version": "==0.12.0"
         },
         "pytz": {
             "hashes": [

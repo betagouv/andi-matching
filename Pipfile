@@ -26,6 +26,8 @@ pytz = "*"
 aiohttp = "*"
 email-validator = "*"
 pandas = "*"
+python-levenshtein = "*"
+fuzzywuzzy = "*"
 
 [requires]
 python_version = "3.7"
