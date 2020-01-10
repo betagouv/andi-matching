@@ -225,7 +225,8 @@ async def matching(query: QueryModel):
 async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
-    Query rome code suggestions according to input string.
+    Query rome code suggestions according to input string,
+    only returning top 15 results.
     """
     global SUGGEST_COUNTER  # pylint:disable=global-statement
     SUGGEST_COUNTER += 1
@@ -248,7 +249,7 @@ async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _t
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),
-        'data': rome_list,
+        'data': rome_list[:15],
         **trace,
     }
 
