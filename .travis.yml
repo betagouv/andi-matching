@@ -12,10 +12,14 @@ cache:
   - public
 notifications:
   slack: andi-startup:4EvkZ1UZEV4LwZXzvXhDGP8u
+addons:
+  ssh_known_hosts: 
+    - andi.beta.gouv.fr
+    - 40.89.150.201
 jobs:
   include:
   - stage: test
-    name: Test form_handler component
+    name: Test component
     python: 3.7
     script:
     - pipenv install --dev
@@ -42,19 +46,17 @@ jobs:
     python: 3.7
     if: branch = master AND type = push AND fork = false
     script:
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker pull berzemus/matching:$TRAVIS_COMMIT && sleep 5 || :"
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker stop matching && sleep 4 || :"
-    - ssh -i deploy_ed25519 travis@andi.beta.gouv.fr "docker run -d --rm -p 8085:$PORT
+    - ssh -i deploy_ed25519 travis@$HOST "docker pull berzemus/matching:$TRAVIS_COMMIT && sleep 5"
+    - ssh -i deploy_ed25519 travis@$HOST "docker stop matching && sleep 4 || :"
+    - ssh -i deploy_ed25519 travis@$HOST "docker run -d --rm -p 8085:$PORT
       --add-host=database:172.17.0.1
       --ip 172.17.0.6
       -e PROXY_PREFIX=/api
       -e PG_DSN=$PG_DSN
-      -e HOST=$HOST
+      -e HOST=$PG_HOST
       -e PORT=$PORT
       -e LOG_LEVEL=debug
       --name matching berzemus/matching:$TRAVIS_COMMIT"
-addons:
-  ssh_known_hosts: andi.beta.gouv.fr
 before_install:
 - openssl aes-256-cbc -K $encrypted_8a3564fa26d9_key -iv $encrypted_8a3564fa26d9_iv
   -in misc/deploy_ed25519.enc -out ./deploy_ed25519 -d
