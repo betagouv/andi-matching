@@ -263,7 +263,7 @@ async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _t
 async def api_entreprise(_sid: uuid.UUID, siret: str, _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Employer data endpoint
-    """ 
+    """
     query_id = uuid.uuid4()
     raw_query = {
         '_v': _v,
