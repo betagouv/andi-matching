@@ -19,7 +19,7 @@ logger.addHandler(logging.StreamHandler())
 
 MAX_VALUE_GROUP = '5'
 
-ANDIDATA_FILE = 'andi_rome2naf_20191203'
+ANDIDATA_FILE = 'andi_rome2naf_20200130'
 
 
 # ##################################################################### HELPERS
