@@ -47,9 +47,8 @@ FROM
             ORDER BY ST_Distance(geom, orig_geom) ASC
         ) AS score_geo,
         -- crit naf ----------------------------------------------
-        CASE e.naf
-            {naf_rules}
-        END AS score_naf,
+        {naf_rules}
+        AS score_naf,
         -- crit size ---------------------------------------------
         CASE e.taille
             {size_rules}
