@@ -154,21 +154,32 @@ def get_naf_sql(rules):
     '''
     codes, domains = rules
     sql = []
-    for naf, value in codes.items():
-        sql.append(f'WHEN \'{naf}\' THEN {value}')
 
+    if codes:
+        sql.append('CASE e.naf')
+        for naf, value in codes.items():
+            sql.append(f'WHEN \'{naf}\' THEN {value}')
+
+        if domains:
+            sql.append('ELSE CASE substring(e.naf, 0, 3)')
+            for naf, value in domains.items():
+                value -= 1
+                sql.append(f'WHEN \'{naf}\' THEN {value}')
+        sql.append('ELSE 1')
+        if domains:
+            sql.append('END')
+        sql.append('END')
+        return "\n".join(sql)
     if domains:
-        sql.append('ELSE CASE substring(e.naf, 0, 3)')
+        sql.append('CASE substring(e.naf, 0, 3)')
         for naf, value in domains.items():
             value -= 1
             sql.append(f'WHEN \'{naf}\' THEN {value}')
-
-    sql.append('ELSE 1')
-
-    if domains:
+        sql.append('ELSE 1')
         sql.append('END')
-
-    return "\n".join(sql)
+        return "\n".join(sql)
+    else:
+        return "1"
 
 
 def sub_maxvg(vg, num):
@@ -265,7 +276,10 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
     for k, v in root.items():
         sql.append(f'WHEN \'{k}\' THEN {v}')
 
-    sql.append('ELSE 1')
+    if len(sql) > 0:
+        sql.append('ELSE 1')
+    else:
+        sql.append('WHEN TRUE THEN 1')
 
     return "\n".join(sql)
 
