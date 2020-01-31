@@ -6,7 +6,6 @@ from collections import OrderedDict
 from urllib.parse import quote_plus
 
 import psycopg2
-import asyncpg
 import yaml
 from psycopg2.extras import RealDictCursor
 
@@ -285,6 +284,62 @@ def get_size_rules(tpe, pme, eti, ge):  # pylint: disable=too-many-locals
     return "\n".join(sql)
 
 
+# https://github.com/PieterjanMontens/pgware/blob/master/pgware/utils.py
+def ps2pg(q_in, v_in):
+    """
+    Convert psycopg2 query argument syntax to postgresql syntax
+    - supports named arguments
+    - keeps order of values
+    - multiple reference will result in multiple values, cost of uniqueness check not worth it
+    """
+    if isinstance(v_in, dict):
+        return ps2pg_dict(q_in, v_in)
+    if not isinstance(v_in, tuple):
+        v_in = [v_in]
+    q_out = []
+    v_out = []
+    arg_count = 0
+    skip = False
+    for i, elm in enumerate(q_in):
+        if skip and elm == 's':
+            skip = not skip
+        elif elm == '%' and q_in[i + 1] == 's':
+            arg_count += 1
+            skip = not skip
+            q_out.append(f'${arg_count}')
+            v_out.append(v_in[arg_count - 1])
+        else:
+            q_out.append(elm)
+    if skip:
+        raise RuntimeError('Query argument converter failed: check query')
+    return ''.join(q_out), tuple(v_out)
+
+
+def ps2pg_dict(q_in, v_in):
+    q_out = []
+    v_out = []
+    skip = False
+    buff = []
+    for i, elm in enumerate(q_in):
+        if skip and elm in ['(', ')']:
+            pass
+        elif skip and q_in[i - 1:i + 1] == ')s':
+            v_out.append(v_in[''.join(buff)])
+            q_out.append(str(len(v_out)))
+            buff = []
+            skip = not skip
+        elif skip:
+            buff.append(elm)
+        elif elm == '%' and q_in[i + 1] == '(':
+            q_out.append('$')
+            skip = not skip
+        else:
+            q_out.append(elm)
+    if skip:
+        raise RuntimeError('Query argument converter failed: check query')
+    return ''.join(q_out), tuple(v_out)
+
+
 # ####################################################################### MATCH
 # #############################################################################
 def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def'):  # pylint: disable=too-many-arguments
@@ -339,7 +394,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
             'mul_con': multipliers.get('fc', 1),
 
         }
-        sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
+        sql = cur.mogrify(SQLLIB.MATCH_QUERY_PSYPG2.format(
             naf_rules=naf_sql,
             size_rules=size_sql,
             limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''
@@ -363,8 +418,10 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
     return result
 
 
-async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers):  # pylint: disable=too-many-arguments
-    # FIXME : less code repetition between sync / async runs
+async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, conn=False):  # pylint: disable=too-many-arguments
+    """
+    Async optimized version of run_profile, for web server usage
+    """
     if max_distance == '':
         max_distance = 10
 
@@ -386,46 +443,25 @@ async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, exclud
     size_sql = get_size_rules(tpe, pme, eti, ge)
     logger.debug('Size rules:\n%s', size_sql)
 
-    result = {}
-    logger.info('Connecting to database ...')
-    with psycopg2.connect(cursor_factory=RealDictCursor, **cfg['postgresql']) as conn, conn.cursor() as cur:
-        logger.info('Obtained database cursor')
-        # XXX: /!\ multiplier defauls hardcoded
-        data = {
-            'lat': lat,
-            'lon': lon,
-            'dist': max_distance,
-            'mul_geo': multipliers.get('fg', 1),
-            'mul_naf': multipliers.get('fn', 5),
-            'mul_siz': multipliers.get('ft', 3),
-            'mul_wel': multipliers.get('fw', 2),
-            'mul_con': multipliers.get('fc', 1),
+    data = {
+        'lat': lat,
+        'lon': lon,
+        'dist': max_distance,
+        'mul_geo': multipliers.get('fg', 1),
+        'mul_naf': multipliers.get('fn', 5),
+        'mul_siz': multipliers.get('ft', 3),
+        'mul_wel': multipliers.get('fw', 2),
+        'mul_con': multipliers.get('fc', 1),
 
-        }
-        sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
-            naf_rules=naf_sql,
-            size_rules=size_sql,
-            limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''
-        ), data)
-        logger.debug(sql.decode('utf8'))
+    }
+    sql, params = ps2pg(SQLLIB.MATCH_QUERY.format(
+        naf_rules=naf_sql,
+        size_rules=size_sql,
+        limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''
+    ), data)
 
-    conn = await asyncpg.connect(**cfg['postgresql'])
-    raw_result = await conn.fetch(sql.decode('utf-8'))
-    # FIXME: re-use connections
-    await conn.close()
+    logger.debug("Obtained SQL:\n%s\n\n parameters:\n%s", sql, params)
+    raw_result = await conn.fetch(sql, *params)
     result = [dict(row) for row in raw_result]
-
-    # for row in result:
-
-    #     # row['google_url'] = ''.join(['https://google.fr/search?q=', quote_plus(row['nom']), quote_plus(row['departement'])])
-    #     row['andi_fiche'] = ''.join(['https://andi.beta.gouv.fr:4430/company/browse/', str(row['id'])])
-    #     row['google_search'] = ''.join([
-    #         'https://google.fr/search?q=',
-    #         quote_plus(row['nom'].lower()),
-    #         '+',
-    #         quote_plus(str(row['departement'])),
-    #         '+',
-    #         quote_plus(str(row['commune'])),
-    #     ])
 
     return result

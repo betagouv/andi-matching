@@ -10,9 +10,10 @@ from functools import reduce
 
 import pandas as pd
 import pytz
+import asyncpg
 import uvicorn
 import yaml
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 
@@ -67,7 +68,11 @@ logger.addHandler(logging.StreamHandler())
 
 
 config = {
-    'postgresql': {'dsn': os.getenv('PG_DSN', 'postgress://user:pass@localhost:5432/db')},
+    'postgresql': {
+        'dsn': os.getenv('PG_DSN', 'postgress://user:pass@localhost:5432/db'),
+        'min_size': 4,
+        'max_size': 20
+    },
     'server': {
         'host': os.getenv('HOST', 'localhost'),
         'port': int(os.getenv('PORT', '5000')),
@@ -102,8 +107,10 @@ ROME_DF['stack'] = ROME_DF.apply(lambda x: normalize(x['label']), axis=1)
 OGR_DF['stack'] = OGR_DF.apply(lambda x: normalize(x['label']), axis=1)
 logger.info('Dataframe compilation done')
 
+DB_POOL = []
 
-# ################################################################ MATCHING FLOW
+
+# ######################################################################## UTILS
 # ##############################################################################
 def get_trace_obj(query):
     return {
@@ -177,8 +184,23 @@ async def make_data(responses=None):
     } for r in responses]
 
 
+async def get_db():
+    global DB_POOL
+    conn = await DB_POOL.acquire()
+    try:
+        yield conn
+    finally:
+        await DB_POOL.release(conn)
+
+
 # ################################################################ SERVER ROUTES
 # ##############################################################################
+@app.on_event("startup")
+async def startup_event():
+    global DB_POOL
+    DB_POOL = await asyncpg.create_pool(**config['postgresql'])
+
+
 @app.get("/")
 def root():
     """
@@ -199,7 +221,7 @@ def root():
 
 
 @app.post("/match", response_model=ResponseModel)
-async def matching(query: QueryModel):
+async def matching(query: QueryModel, db=Depends(get_db)):
     """
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
@@ -211,7 +233,7 @@ async def matching(query: QueryModel):
     lat, lon = await get_address_coords(query.address)
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
-    raw_data = await lib_match.run_profile_async(config, lat, lon, **params)
+    raw_data = await lib_match.run_profile_async(config, lat, lon, conn=db, **params)
     logger.debug('raw responses:')
     logger.debug(yaml.dump(raw_data[:4]))
     data = await make_data(raw_data)
