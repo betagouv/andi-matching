@@ -56,8 +56,7 @@ DEFAULT_MATCHING_PARAMS = {
         'ft': 3,
         'fw': 2,
         'fc': 1,
-    },
-    'rome2naf': 'andidata',
+    }
 }
 
 # ################################################### SETUP AND ARGUMENT PARSING
