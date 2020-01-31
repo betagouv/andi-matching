@@ -1,0 +1,3 @@
+https://andi.beta.gouv.fr/api/rome_suggest?q=journal&_sid=89dcade4-1446-e4a8-324b-7e6b0ba21392&_v=1
+https://andi.beta.gouv.fr/api/rome_suggest?q=medec&_sid=89dcade4-1446-e4a8-324b-7e6b0ba21392&_v=1
+https://andi.beta.gouv.fr/api/rome_suggest?q=pol&_sid=89dcade4-1446-e4a8-324b-7e6b0ba21392&_v=1

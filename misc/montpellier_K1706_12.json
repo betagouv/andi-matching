@@ -1,0 +1,1 @@
+{"_v":1,"_timestamp":"2020-01-31T11:50:46.576Z","_query_id":"ebfdc1ce-7bf6-6e86-9761-fd9be0e87137","_session_id":"89dcade4-1446-e4a8-324b-7e6b0ba21392","address":{"type":"string","value":"Montpellier"},"criteria":[{"priority":2,"name":"distance","distance_km":"12"},{"priority":5,"name":"rome_codes","rome_list":[{"id":"K1706","include":true,"exclude":false}],"exclude_naf":[]}]}
