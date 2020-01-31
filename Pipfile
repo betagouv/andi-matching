@@ -29,6 +29,7 @@ email-validator = "*"
 pandas = "*"
 python-levenshtein = "*"
 fuzzywuzzy = "*"
+asyncpg = "*"
 
 [requires]
 python_version = "3.7"

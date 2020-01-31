@@ -6,6 +6,7 @@ from collections import OrderedDict
 from urllib.parse import quote_plus
 
 import psycopg2
+import asyncpg
 import yaml
 from psycopg2.extras import RealDictCursor
 
@@ -362,6 +363,69 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
     return result
 
 
-async def run_profile_async(*args, **kwargs):
-    # FIXME: make fully async
-    return run_profile(*args, **kwargs)
+async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers):  # pylint: disable=too-many-arguments
+    # FIXME : less code repetition between sync / async runs
+    if max_distance == '':
+        max_distance = 10
+
+    logger.debug('Naf2Rome "andidata" method selected')
+    naf_rules = get_andidata_naflist(romes, includes, excludes)
+    naf_def = False
+
+    logger.debug('Naf matching rules:\n%s', json.dumps(naf_rules, indent=2))
+    naf_sql = get_naf_sql(naf_rules)
+    logger.debug('Naf sql:\n%s', naf_sql)
+
+    tpe, pme, eti, ge = parse_rome_size_prefs(
+        naf_def,
+        'tpe' in sizes,
+        'pme' in sizes,
+        'eti' in sizes,
+        'ge' in sizes)
+
+    size_sql = get_size_rules(tpe, pme, eti, ge)
+    logger.debug('Size rules:\n%s', size_sql)
+
+    result = {}
+    logger.info('Connecting to database ...')
+    with psycopg2.connect(cursor_factory=RealDictCursor, **cfg['postgresql']) as conn, conn.cursor() as cur:
+        logger.info('Obtained database cursor')
+        # XXX: /!\ multiplier defauls hardcoded
+        data = {
+            'lat': lat,
+            'lon': lon,
+            'dist': max_distance,
+            'mul_geo': multipliers.get('fg', 1),
+            'mul_naf': multipliers.get('fn', 5),
+            'mul_siz': multipliers.get('ft', 3),
+            'mul_wel': multipliers.get('fw', 2),
+            'mul_con': multipliers.get('fc', 1),
+
+        }
+        sql = cur.mogrify(SQLLIB.MATCH_QUERY.format(
+            naf_rules=naf_sql,
+            size_rules=size_sql,
+            limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''
+        ), data)
+        logger.debug(sql.decode('utf8'))
+
+    conn = await asyncpg.connect(**cfg['postgresql'])
+    raw_result = await conn.fetch(sql.decode('utf-8'))
+    # FIXME: re-use connections
+    await conn.close()
+    result = [dict(row) for row in raw_result]
+
+    # for row in result:
+
+    #     # row['google_url'] = ''.join(['https://google.fr/search?q=', quote_plus(row['nom']), quote_plus(row['departement'])])
+    #     row['andi_fiche'] = ''.join(['https://andi.beta.gouv.fr:4430/company/browse/', str(row['id'])])
+    #     row['google_search'] = ''.join([
+    #         'https://google.fr/search?q=',
+    #         quote_plus(row['nom'].lower()),
+    #         '+',
+    #         quote_plus(str(row['departement'])),
+    #         '+',
+    #         quote_plus(str(row['commune'])),
+    #     ])
+
+    return result
