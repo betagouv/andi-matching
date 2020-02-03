@@ -46,6 +46,7 @@ def step_impl(context):
 
 @then(u'we receive an empty array response')
 def step_impl(context):
+    print(context.raw_response)
     full_data = context.raw_response.json()
     print(full_data)
     data = full_data.get('data')

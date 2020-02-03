@@ -69,7 +69,7 @@ logger.addHandler(logging.StreamHandler())
 
 config = {
     'postgresql': {
-        'dsn': os.getenv('PG_DSN', 'postgress://user:pass@localhost:5432/db'),
+        'dsn': os.getenv('PG_DSN', 'postgres://user:pass@localhost:5432/db'),
         'min_size': 4,
         'max_size': 20
     },
@@ -198,7 +198,8 @@ async def get_db():
 @app.on_event("startup")
 async def startup_event():
     global DB_POOL
-    DB_POOL = await asyncpg.create_pool(**config['postgresql'])
+    if os.getenv('NO_ASYNCPG', 'false') == 'false':
+        DB_POOL = await asyncpg.create_pool(**config['postgresql'])
 
 
 @app.get("/")
