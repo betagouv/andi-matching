@@ -18,7 +18,7 @@ def matching_api(_context, **kwargs):
     proc = Process(target=run_server, args=(), daemon=True)
     logging.info('Starting server subprocess')
     proc.start()
-    sleep(0.5)
+    sleep(1.0)
     yield
     logging.info('Stopping server subprocess')
     proc.kill()
