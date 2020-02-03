@@ -5,6 +5,7 @@ import math
 import os
 import sys
 import uuid
+import json
 from datetime import datetime
 from functools import reduce
 
@@ -14,8 +15,10 @@ import asyncpg
 import uvicorn
 import yaml
 from fastapi import FastAPI, Depends
+from fastapi.encoders import jsonable_encoder
 from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
 
 import criterion_parser
 from library import (  # rome_list_query,
@@ -35,6 +38,7 @@ from model_entreprise import (
     InputModel as EntrepriseInputModel,
     Model as EntrepriseResponseModel
 )
+from model_tracker import Model as TrackingModel
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -218,6 +222,26 @@ def root():
         'api_counter': COUNTER,
         'api_suggest_counter': SUGGEST_COUNTER,
     }
+
+
+@app.post("/track")
+async def matching(query: TrackingModel, request: Request, db=Depends(get_db)):
+    """
+    Tracking endpoint
+    """
+    sql = """
+    INSERT INTO trackers (
+        session_id,
+        version,
+        send_order,
+        data
+    ) VALUES ($1, $2, $3, $4);
+    """
+    query.server_context.reception_timestamp = datetime.now()
+    query.server_context.client_ip = request.client.host
+    query.server_context.user_agent = request.headers['user-agent']
+    await db.execute(sql, query.session_id, query.v, query.order, json.dumps(jsonable_encoder(query)))
+    logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
 
 
 @app.post("/match", response_model=ResponseModel)
