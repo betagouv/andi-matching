@@ -105,35 +105,25 @@ def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     }
 
 
-def check_full_query(query):
-    """
-    Correct suggestion when full job title has been entered
-    """
-    title = re.sub(r'\([^\)]*\)', '', query).strip()
-    is_full = False
-    if ' ' in title:
-        is_full = True
-    return is_full, normalize(title)
-
-
 def rome_suggest(query, rome_df, ogr_df):
     results = {}
 
     # Unelegant solution to uncontroled queries
-    is_full, needle = check_full_query(query)
-    if is_full:
-        check = rome_df[rome_df['stack'] == needle]
-        if not check.empty:
-            # Full title match, only one result possible
-            results[check.iloc[0]['rome']] = result_build(
-                100,
-                check.iloc[0]['rome'],
-                check.iloc[0]['label'],
-                check.iloc[0]['slug']
-            )
-            return list(results.values())
+    needle = normalize(re.sub(r'\([^\)]*\)', '', query).strip())
 
-        check = rome_df[rome_df['stack'].str.contains(needle)]
+    check = rome_df[rome_df['stack'] == needle]
+    if not check.empty:
+        # Full title match, only one result possible
+        results[check.iloc[0]['rome']] = result_build(
+            100,
+            check.iloc[0]['rome'],
+            check.iloc[0]['label'],
+            check.iloc[0]['slug']
+        )
+        return list(results.values())
+
+    check = rome_df[rome_df['stack'].str.contains(needle)]
+    if not check.empty:
         results[check.iloc[0]['rome']] = result_build(
             score_build(needle, check.iloc[0]['stack']),
             check.iloc[0]['rome'],
