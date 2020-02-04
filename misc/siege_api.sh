@@ -1,5 +1,6 @@
 #!/bin/bash
-workers=(1 2 5 10 20 30 50 80 130 210 340)
+#workers=(1 2 5 10 20 30 50 80 130 210 340)
+workers=(150)
 for i in "${workers[@]}"
 do
     echo "====>> Testing siege with $i workers"

@@ -41,7 +41,15 @@ def step_impl(context):
 def step_impl(context):
     data = context.raw_response.json()
     context.response_data = data
-    assert len(data) > 0
+    assert len(data['data']) > 0
+
+
+@then(u'we receive one response')
+def step_impl(context):
+    data = context.raw_response.json()
+    context.response_data = data
+    print(data)
+    assert len(data['data']) == 1
 
 
 @then(u'we receive an empty array response')
