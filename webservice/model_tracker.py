@@ -15,12 +15,12 @@ action (enum)
 meta
 
 client context
-    - user agent
     - referer
     - url
 
 server context
     - client ip
+    - user agent
     - reception_timestamp
 ---
 """
@@ -39,11 +39,11 @@ class Actions(str, Enum):
     depart = 'departure'  # L'utilisateur quitte la page (meta: vers ou ?)
     mailto = 'mailto'  # L'utilisateur utilise un mailto (meta: vers quoi ?)
     linkto = 'linkto'  # L'utilisateur clique sur un lien et quitte la page (meta: vers ou ?)
-    results = 'results'  # L'utilisateur arrive au bilan (meta: résultats)
+    bilan = 'bilan'  # L'utilisateur arrive au bilan (meta: résultats)
     to_matching = 'to_matching'  # L'utilisateur continue vers matching
     question_arrival = 'question_arrival'  # L'utilisateur arrive sur une question (meta: laquelle)
     question_departure = 'question_departure'  # L'utilisateur part d'une question (meta: laquelle)
-    question_response = 'question_response'  # L'utilisateur répond à une question
+    question_response = 'question_response'  # L'utilisateur répond à une question (meta: quelle question / quelle réponse)
     matching_search = 'matching_search'  # L'utilisateur effectue une recherche (meta: critères)
     matching_results = 'matching_results'  # L'utilisateur reçoit les résultats (meta: combien)
     more_results = 'more_results'  # L'utilisateur veut afficher plus de résultats
@@ -53,12 +53,12 @@ class Actions(str, Enum):
 
 class ClientContext(BaseModel):
     referer: str = None
-    url: str = None
 
 
 class ServerContext(BaseModel):
     client_ip: IPvAnyAddress = None
     reception_timestamp: datetime = Field(None, alias='_timestamp', description="Timestamp (UNIX Epoch)")
+    origin: str = None
     user_agent: str = None
 
 
@@ -71,9 +71,9 @@ class Model(BaseModel):
     order: int
 
     session_id: uuid.UUID = Field(..., description="browser session UUID")
-    page: str
+    page: str = None
     action: Actions = Field(..., description="Type d'action")
-    meta: Json
+    meta: Json = None
 
     client_context: ClientContext
     server_context: ServerContext
@@ -89,13 +89,13 @@ class Model(BaseModel):
                 "action": "arrival",
                 "meta": {},
                 "client_context": {
-                    "user_agent": "DOES_NOT_EXIST",
                     "referer": None,
-                    "url": "http://example.com"
                 },
                 "server_context": {
+                    "user_agent": "DOES_NOT_EXIST",
                     "client_ip": None,
-                    "reception_timestamp": None
+                    "reception_timestamp": None,
+                    "referer": "http://example.com"
                 }
             }
         }
