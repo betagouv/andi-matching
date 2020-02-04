@@ -1,6 +1,7 @@
 import json
 import logging
 import string
+import re
 
 import aiohttp
 import pandas as pd
@@ -104,26 +105,53 @@ def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     }
 
 
+def check_full_query(query):
+    """
+    Correct suggestion when full job title has been entered
+    """
+    title = re.sub(r'\([^\)]*\)', '', query).strip()
+    is_full = False
+    if ' ' in title:
+        is_full = True
+    return is_full, normalize(title)
+
+
 def rome_suggest(query, rome_df, ogr_df):
+    results = {}
+
+    # Unelegant solution to uncontroled queries
+    is_full, needle = check_full_query(query)
+    if is_full:
+        check = rome_df[rome_df['stack'] == needle]
+        if not check.empty:
+            # Full title match, only one result possible
+            results[check.iloc[0]['rome']] = result_build(
+                100,
+                check.iloc[0]['rome'],
+                check.iloc[0]['label'],
+                check.iloc[0]['slug']
+            )
+            return list(results.values())
+
+        check = rome_df[rome_df['stack'].str.contains(needle)]
+        results[check.iloc[0]['rome']] = result_build(
+            score_build(needle, check.iloc[0]['stack']),
+            check.iloc[0]['rome'],
+            check.iloc[0]['label'],
+            check.iloc[0]['slug']
+        )
+
     words = words_get(query)
     if len(words) == 0:
         return []
     rome_raw_matches = []
     ogr_raw_matches = []
-    for word in words:
+    # Only using first 5 words
+    for word in words[:5]:
         rome_raw_matches.append(rome_df[rome_df['stack'].str.contains(word)])
         ogr_raw_matches.append(ogr_df[ogr_df['stack'].str.contains(word)])
     rome_matches = pd.concat(rome_raw_matches)
     ogr_matches = pd.concat(ogr_raw_matches)
-
-    results = {}
-    for _i, rome_row in rome_matches.iterrows():
-        results[rome_row['rome']] = result_build(
-            score_build(query, rome_row['stack']),
-            rome_row['rome'],
-            rome_row['label'],
-            rome_row['slug']
-        )
 
     for _i, ogr_row in ogr_matches.iterrows():
         rome = ogr_row['rome']
@@ -137,5 +165,11 @@ def rome_suggest(query, rome_df, ogr_df):
                 ogr_row['label']
             )
 
-    # Return sorted list of dictionnaries
+    for _i, rome_row in rome_matches.iterrows():
+        results[rome_row['rome']] = result_build(
+            score_build(query, rome_row['stack']),
+            rome_row['rome'],
+            rome_row['label'],
+            rome_row['slug']
+        )
     return sorted(list(results.values()), key=lambda e: e['score'], reverse=True)

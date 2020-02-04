@@ -15,7 +15,7 @@ pylint-fail-under:
 	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
 
 behave:
-	export PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice && pipenv run behave tests/behave
+	export NO_ASYNCPG=true && export PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice && pipenv run behave tests/behave
 
 behave-debug:
 	pipenv run behave tests/behave --logging-level=DEBUG --no-logcapture
