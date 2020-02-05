@@ -169,6 +169,7 @@ async def make_data(responses=None):
         'name': r['nom'],
         'address': r['adresse'],
         'departement': r['departement'],
+        'phonenumber': r['phonenumber'],
         'city': r['commune'],
         'coords': {'lat': 93, 'lon': 18},
         'size': r['taille'],
