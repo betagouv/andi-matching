@@ -66,7 +66,7 @@ class ResponseData(BaseModel):
     name: str
     address: str
     departement: str
-    phonenumber: str
+    phonenumber: str = None
     city: str
     coords: Coordinates
     # FIXME: enum size type makes validator crash
