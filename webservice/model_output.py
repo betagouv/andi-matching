@@ -66,6 +66,7 @@ class ResponseData(BaseModel):
     name: str
     address: str
     departement: str
+    phonenumber: str = None
     city: str
     coords: Coordinates
     # FIXME: enum size type makes validator crash
@@ -103,6 +104,7 @@ class Model(BaseModel):
                     "name": "REVILOX",
                     "address": "6 Rue de la Métairie, 95640 Marines, France",
                     "departement": "Val-d'Oise",
+                    "phonenumber": "02345670",
                     "city": "Marines",
                     "coords": {
                         "lat": 93,
