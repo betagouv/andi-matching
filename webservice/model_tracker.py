@@ -46,6 +46,7 @@ class Actions(str, Enum):
     question_response = 'question_response'  # L'utilisateur répond à une question (meta: quelle question / quelle réponse)
     matching_search = 'matching_search'  # L'utilisateur effectue une recherche (meta: critères)
     matching_results = 'matching_results'  # L'utilisateur reçoit les résultats (meta: combien)
+    matching_error = 'matching_error'  # L'utilisateur reçoit une erreur lors de son utilisation du service matching (meta: message d'erreur)
     more_results = 'more_results'  # L'utilisateur veut afficher plus de résultats
     result_click = 'result_click'  # L'utilisateur clique sur un résultat (meta: vers ou ?)
     guidance_click = 'guidance_click'  # L'utilisateur clique sur les conseils de contact
