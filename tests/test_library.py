@@ -86,7 +86,7 @@ def test_get_rome_suggest():
     ROME_DF['stack'] = ROME_DF.apply(lambda x: library.normalize(x['label']), axis=1)
     OGR_DF['stack'] = OGR_DF.apply(lambda x: library.normalize(x['label']), axis=1)
 
-    out = library.rome_suggest("phil", ROME_DF, OGR_DF)
+    out = library.rome_suggest_v1("phil", (ROME_DF, OGR_DF))
     print(json.dumps(out, indent=2))
     assert out is not None
     assert len(out) == 4

@@ -24,8 +24,10 @@ from library import (  # rome_list_query,
     geo_code_query,
     get_codes
 )
-from library import get_dataframes_v1 as init_rome_suggest
-from library import rome_suggest_v1 as rome_suggest
+# from library import get_dataframes_v1 as init_rome_suggest
+# from library import rome_suggest_v1 as rome_suggest
+from lib_rome_suggest_v2 import init_state as init_rome_suggest
+from lib_rome_suggest_v2 import match as rome_suggest
 
 from matching import lib_match
 from model_input import Model as QueryModel
