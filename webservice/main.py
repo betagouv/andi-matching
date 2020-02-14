@@ -9,7 +9,6 @@ import json
 from datetime import datetime
 from functools import reduce
 
-import pandas as pd
 import pytz
 import asyncpg
 import uvicorn
@@ -23,10 +22,11 @@ from starlette.requests import Request
 import criterion_parser
 from library import (  # rome_list_query,
     geo_code_query,
-    get_codes,
-    normalize,
-    rome_suggest
+    get_codes
 )
+from library import get_dataframes_v1 as init_rome_suggest
+from library import rome_suggest_v1 as rome_suggest
+
 from matching import lib_match
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
@@ -101,15 +101,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logger.info('Compiling dataframe references')
-current_dir = os.path.dirname(os.path.abspath(__file__))
-ROME_DF = pd.read_csv(f'{current_dir}/referentiels/rome_lbb.csv')
-ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
-OGR_DF = pd.read_csv(f'{current_dir}/referentiels/ogr_lbb.csv')
-OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
-ROME_DF['stack'] = ROME_DF.apply(lambda x: normalize(x['label']), axis=1)
-OGR_DF['stack'] = OGR_DF.apply(lambda x: normalize(x['label']), axis=1)
-logger.info('Dataframe compilation done')
+SUGGEST_STATE = init_rome_suggest()
 
 DB_POOL = []
 
@@ -296,7 +288,7 @@ async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _t
     trace = get_trace_obj(query)
     logger.debug('Running query...')
     # rome_list = await rome_list_query(query.needle)
-    rome_list = rome_suggest(query.needle, ROME_DF, OGR_DF)
+    rome_list = rome_suggest(query.needle, SUGGEST_STATE)
     logger.debug('Obtained %s results', len(rome_list))
     return {
         '_v': VERSION,

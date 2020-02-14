@@ -2,6 +2,7 @@ import json
 import logging
 import string
 import re
+import os
 
 import aiohttp
 import pandas as pd
@@ -11,7 +12,8 @@ from fuzzywuzzy import fuzz
 logger = logging.getLogger(__name__)
 
 
-# ## Geo-coding functions
+# ############################# Geo-coding functions
+# ##################################################
 async def geo_code_query(query):
     """
     Query open geo-coding API from geo.api.gouv.fr
@@ -32,7 +34,9 @@ def get_codes(data):
     return lat, lon
 
 
-# ## Rome suggesting functions
+# ##################### Rome suggesting functions V0
+# ##################################################
+# OBSOLETE
 async def rome_list_query(query):
     """
     DEPRECATED
@@ -50,6 +54,22 @@ async def rome_list_query(query):
             return json.loads(response)
             # FIXME: API response content-type is not json
             # return await response.json()
+
+
+# ##################### Rome suggesting functions V1
+# ##################################################
+# OBSOLETE
+def get_dataframes_v1():
+    logger.info('Compiling dataframe references')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    rome_df = pd.read_csv(f'{current_dir}/referentiels/rome_lbb.csv')
+    rome_df.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
+    ogr_df = pd.read_csv(f'{current_dir}/referentiels/ogr_lbb.csv')
+    ogr_df.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
+    rome_df['stack'] = rome_df.apply(lambda x: normalize(x['label']), axis=1)
+    ogr_df['stack'] = ogr_df.apply(lambda x: normalize(x['label']), axis=1)
+    logger.info('Dataframe compilation done')
+    return (rome_df, ogr_df)
 
 
 def score_build(query, match):
@@ -105,7 +125,8 @@ def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     }
 
 
-def rome_suggest(query, rome_df, ogr_df):
+def rome_suggest_v1(query, state):
+    rome_df, ogr_df = state
     results = {}
 
     # Unelegant solution to uncontroled queries
@@ -163,3 +184,6 @@ def rome_suggest(query, rome_df, ogr_df):
             rome_row['slug']
         )
     return sorted(list(results.values()), key=lambda e: e['score'], reverse=True)
+
+# ##################### Rome suggesting functions V2
+# ##################################################

@@ -30,6 +30,8 @@ pandas = "*"
 python-levenshtein = "*"
 fuzzywuzzy = "*"
 asyncpg = "*"
+whoosh = "*"
+python-slugify = "*"
 
 [requires]
 python_version = "3.7"
