@@ -19,7 +19,7 @@ Feature: rome_suggest
 
   Scenario: Obtaining rome suggestions long queries
     Given the api is available
-      When we submit "Vente en articles de sport et loisirs (Vendeur / Vendeuse de journaux, ...)" to the rome_suggest endpoint
+      When we submit "Vente en articles de sport et loisirs" to the rome_suggest endpoint
         Then we receive one response
         And one of them is for rome code "D1211"
 
