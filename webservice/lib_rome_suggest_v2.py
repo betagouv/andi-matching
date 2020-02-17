@@ -108,7 +108,7 @@ def get_index(idx_name):
 
 
 class FuzzyConfig(FuzzyTerm):
-    def __init__(self, fieldname, text, boost=1.0, maxdist=4, prefixlength=4, constantscore=True):
+    def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=3, constantscore=True):
         super(FuzzyConfig, self).__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
 
 
@@ -120,21 +120,19 @@ def match(query_str, idx, limit=40):
         return ret_results
 
     with idx.searcher() as searcher:
-        # content_facet = sorting.FieldFacet('label')
         rome_facet = sorting.FieldFacet('rome')
 
         # Strict search, with forced correction
         parser = QueryParser('label', idx.schema)
-        query = parser.parse(f'{query_str}*')
+        query = parser.parse(f'{query_str}')
         cor = searcher.correct_query(query, query_str)
         results = searcher.search(cor.query, limit=20, collapse=rome_facet)
 
-        # # If only one word, check for partial match
-        # if len(query_words) == 1:
-        #     parser = QueryParser('label', idx.schema)
-        #     query = parser.parse(f'{query_str}*')
-        #     results_partial = searcher.search(query, limit=20, collapse=rome_facet)
-        #     results.upgrade_and_extend(results_partial)
+        # Forced correction search
+        parser = QueryParser('label', idx.schema)
+        query = parser.parse(f'{query_str}*')
+        results_partial = searcher.search(query, limit=20, collapse=rome_facet)
+        results.upgrade_and_extend(results_partial)
 
         # Fuzzy search
         parser = QueryParser('label', idx.schema, termclass=FuzzyConfig)
