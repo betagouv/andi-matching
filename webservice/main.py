@@ -1,44 +1,42 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import logging
 import math
 import os
 import sys
 import uuid
-import json
 from datetime import datetime
 from functools import reduce
 
-import pytz
 import asyncpg
+import pytz
 import uvicorn
 import yaml
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.encoders import jsonable_encoder
 from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 import criterion_parser
-from library import (  # rome_list_query,
-    geo_code_query,
-    get_codes
-)
 # from library import get_dataframes_v1 as init_rome_suggest
 # from library import rome_suggest_v1 as rome_suggest
-from lib_rome_suggest_v2 import init_state as init_rome_suggest
-from lib_rome_suggest_v2 import match as rome_suggest
-
+from lib_rome_suggest_v2 import (
+    init_state as init_rome_suggest,
+    match as rome_suggest
+)
+from library import geo_code_query, get_codes  # rome_list_query,
 from matching import lib_match
+from model_entreprise import (
+    InputModel as EntrepriseInputModel,
+    Model as EntrepriseResponseModel
+)
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
 from model_rome_suggest import (
     InputModel as RomeInputModel,
     Model as RomeResponseModel
-)
-from model_entreprise import (
-    InputModel as EntrepriseInputModel,
-    Model as EntrepriseResponseModel
 )
 from model_tracker import Model as TrackingModel
 

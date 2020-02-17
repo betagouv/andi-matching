@@ -19,6 +19,7 @@ disable=missing-docstring,
         pointless-string-statement,
         too-few-public-methods,
         fixme,
+        logging-format-interpolation,
 
 [FORMAT]
 

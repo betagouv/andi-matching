@@ -1,8 +1,8 @@
 import json
 import logging
-import string
-import re
 import os
+import re
+import string
 
 import aiohttp
 import pandas as pd

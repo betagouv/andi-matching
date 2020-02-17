@@ -1,17 +1,19 @@
+import logging
 import os
 import re
 import shutil
-import string
-import logging
-from whoosh.index import create_in, exists_in, open_dir
-from whoosh.fields import Schema, TEXT, STORED, KEYWORD
-from whoosh.analysis import CharsetFilter, StandardAnalyzer
-from whoosh.support.charset import accent_map
-from whoosh.qparser import QueryParser, FuzzyTermPlugin
-from whoosh.query import FuzzyTerm
-from whoosh import sorting
+
 import pandas as pd
 from slugify import slugify
+from whoosh import sorting
+from whoosh.analysis import CharsetFilter, StandardAnalyzer
+from whoosh.fields import KEYWORD, STORED, TEXT, Schema
+from whoosh.index import create_in, exists_in, open_dir
+from whoosh.qparser import FuzzyTermPlugin, QueryParser
+from whoosh.query import FuzzyTerm
+from whoosh.support.charset import accent_map
+
+from library import words_get
 
 logger = logging.getLogger(__name__)
 
@@ -155,28 +157,3 @@ def match(query_str, idx, limit=40):
             })
 
     return sorted(ret_results, key=lambda e: e['score'], reverse=True)
-
-
-def normalize(txt):
-    """
-    Generic standaridzed text normalizing function
-    """
-    # Remove punctuation
-    table = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
-    txt = txt.translate(table)
-
-    # Lowercase
-    txt = txt.lower()
-
-    # Remove short letter groups
-    txt = txt.split()
-    txt = [t for t in txt if len(t) >= 3]
-    txt = ' '.join(txt)
-    return txt
-
-
-def words_get(raw_query):
-    if not raw_query:
-        return []
-    query = normalize(raw_query)
-    return query.split()
