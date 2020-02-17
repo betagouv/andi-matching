@@ -14,7 +14,7 @@ def run_server():
 
 
 @fixture
-def matching_api(_context, **kwargs):
+def matching_api(_context, **_kwargs):
     proc = Process(target=run_server, args=(), daemon=True)
     logging.info('Starting server subprocess')
     proc.start()

@@ -182,7 +182,7 @@ async def make_data(responses=None):
 
 
 async def get_db():
-    global DB_POOL
+    global DB_POOL  # pylint:disable=global-statement
     conn = await DB_POOL.acquire()
     try:
         yield conn
@@ -194,7 +194,7 @@ async def get_db():
 # ##############################################################################
 @app.on_event("startup")
 async def startup_event():
-    global DB_POOL
+    global DB_POOL  # pylint:disable=global-statement
     if os.getenv('NO_ASYNCPG', 'false') == 'false':
         DB_POOL = await asyncpg.create_pool(**config['postgresql'])
 
@@ -219,7 +219,7 @@ def root():
 
 
 @app.post("/track")
-async def matching(query: TrackingModel, request: Request, db=Depends(get_db)):
+async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
     """
     Tracking endpoint
     """

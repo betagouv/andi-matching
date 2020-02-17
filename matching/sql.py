@@ -87,3 +87,7 @@ WHERE
 ORDER BY score_total DESC, distance ASC
 LIMIT 100;
 '''
+
+MATCH_QUERY_PSYPG2 = '''
+    -- see github history
+'''

@@ -20,6 +20,7 @@ disable=missing-docstring,
         too-few-public-methods,
         fixme,
         logging-format-interpolation,
+        unnecessary-lambda,
 
 [FORMAT]
 
