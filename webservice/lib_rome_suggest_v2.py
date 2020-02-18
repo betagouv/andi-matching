@@ -1,17 +1,19 @@
+import logging
 import os
 import re
 import shutil
-import string
-import logging
-from whoosh.index import create_in, exists_in, open_dir
-from whoosh.fields import Schema, TEXT, STORED, KEYWORD
-from whoosh.analysis import CharsetFilter, StandardAnalyzer
-from whoosh.support.charset import accent_map
-from whoosh.qparser import QueryParser, FuzzyTermPlugin
-from whoosh.query import FuzzyTerm
-from whoosh import sorting
+
 import pandas as pd
 from slugify import slugify
+from whoosh import sorting
+from whoosh.analysis import CharsetFilter, StandardAnalyzer
+from whoosh.fields import KEYWORD, STORED, TEXT, Schema
+from whoosh.index import create_in, exists_in, open_dir
+from whoosh.qparser import FuzzyTermPlugin, QueryParser
+from whoosh.query import FuzzyTerm
+from whoosh.support.charset import accent_map
+
+from library import words_get
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +110,7 @@ def get_index(idx_name):
 
 
 class FuzzyConfig(FuzzyTerm):
-    def __init__(self, fieldname, text, boost=1.0, maxdist=4, prefixlength=4, constantscore=True):
+    def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=3, constantscore=True):
         super(FuzzyConfig, self).__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
 
 
@@ -120,21 +122,19 @@ def match(query_str, idx, limit=40):
         return ret_results
 
     with idx.searcher() as searcher:
-        # content_facet = sorting.FieldFacet('label')
         rome_facet = sorting.FieldFacet('rome')
 
         # Strict search, with forced correction
         parser = QueryParser('label', idx.schema)
-        query = parser.parse(f'{query_str}*')
+        query = parser.parse(f'{query_str}')
         cor = searcher.correct_query(query, query_str)
         results = searcher.search(cor.query, limit=20, collapse=rome_facet)
 
-        # # If only one word, check for partial match
-        # if len(query_words) == 1:
-        #     parser = QueryParser('label', idx.schema)
-        #     query = parser.parse(f'{query_str}*')
-        #     results_partial = searcher.search(query, limit=20, collapse=rome_facet)
-        #     results.upgrade_and_extend(results_partial)
+        # Forced correction search
+        parser = QueryParser('label', idx.schema)
+        query = parser.parse(f'{query_str}*')
+        results_partial = searcher.search(query, limit=20, collapse=rome_facet)
+        results.upgrade_and_extend(results_partial)
 
         # Fuzzy search
         parser = QueryParser('label', idx.schema, termclass=FuzzyConfig)
@@ -157,28 +157,3 @@ def match(query_str, idx, limit=40):
             })
 
     return sorted(ret_results, key=lambda e: e['score'], reverse=True)
-
-
-def normalize(txt):
-    """
-    Generic standaridzed text normalizing function
-    """
-    # Remove punctuation
-    table = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
-    txt = txt.translate(table)
-
-    # Lowercase
-    txt = txt.lower()
-
-    # Remove short letter groups
-    txt = txt.split()
-    txt = [t for t in txt if len(t) >= 3]
-    txt = ' '.join(txt)
-    return txt
-
-
-def words_get(raw_query):
-    if not raw_query:
-        return []
-    query = normalize(raw_query)
-    return query.split()

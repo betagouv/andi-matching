@@ -178,8 +178,7 @@ def get_naf_sql(rules):
         sql.append('ELSE 1')
         sql.append('END')
         return "\n".join(sql)
-    else:
-        return "1"
+    return "1"
 
 
 def sub_maxvg(vg, num):

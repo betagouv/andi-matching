@@ -1,7 +1,10 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, Json, PositiveInt, IPvAnyAddress
+
+from pydantic import BaseModel, Field, IPvAnyAddress, Json, PositiveInt
+
+
 """
 Data points:
 ------------

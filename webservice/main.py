@@ -1,44 +1,42 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import logging
 import math
 import os
 import sys
 import uuid
-import json
 from datetime import datetime
 from functools import reduce
 
-import pytz
 import asyncpg
+import pytz
 import uvicorn
 import yaml
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.encoders import jsonable_encoder
 from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 import criterion_parser
-from library import (  # rome_list_query,
-    geo_code_query,
-    get_codes
-)
 # from library import get_dataframes_v1 as init_rome_suggest
 # from library import rome_suggest_v1 as rome_suggest
-from lib_rome_suggest_v2 import init_state as init_rome_suggest
-from lib_rome_suggest_v2 import match as rome_suggest
-
+from lib_rome_suggest_v2 import (
+    init_state as init_rome_suggest,
+    match as rome_suggest
+)
+from library import geo_code_query, get_codes  # rome_list_query,
 from matching import lib_match
+from model_entreprise import (
+    InputModel as EntrepriseInputModel,
+    Model as EntrepriseResponseModel
+)
 from model_input import Model as QueryModel
 from model_output import Model as ResponseModel
 from model_rome_suggest import (
     InputModel as RomeInputModel,
     Model as RomeResponseModel
-)
-from model_entreprise import (
-    InputModel as EntrepriseInputModel,
-    Model as EntrepriseResponseModel
 )
 from model_tracker import Model as TrackingModel
 
@@ -184,7 +182,7 @@ async def make_data(responses=None):
 
 
 async def get_db():
-    global DB_POOL
+    global DB_POOL  # pylint:disable=global-statement
     conn = await DB_POOL.acquire()
     try:
         yield conn
@@ -192,11 +190,34 @@ async def get_db():
         await DB_POOL.release(conn)
 
 
+async def match_track(query, params, lat, lon, db):
+    sql = """
+    INSERT INTO trackers (
+        session_id,
+        version,
+        send_order,
+        data
+    ) VALUES ($1, $2, $3, $4);
+    """
+    payload = {
+        'page': 'api',
+        'action': 'match',
+        'meta': {
+            'lat': lat,
+            'lon': lon,
+            'address': query.address,
+            'criteria': query.criteria,
+            'query_id': query.query_id
+        }
+    }
+    await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))
+
+
 # ################################################################ SERVER ROUTES
 # ##############################################################################
 @app.on_event("startup")
 async def startup_event():
-    global DB_POOL
+    global DB_POOL  # pylint:disable=global-statement
     if os.getenv('NO_ASYNCPG', 'false') == 'false':
         DB_POOL = await asyncpg.create_pool(**config['postgresql'])
 
@@ -221,7 +242,7 @@ def root():
 
 
 @app.post("/track")
-async def matching(query: TrackingModel, request: Request, db=Depends(get_db)):
+async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
     """
     Tracking endpoint
     """
@@ -259,6 +280,12 @@ async def matching(query: QueryModel, db=Depends(get_db)):
     data = await make_data(raw_data)
     logger.debug('clean responses:')
     logger.debug(yaml.dump(data[:4]))
+
+    try:
+        await match_track(query, params, lat, lon, db)
+    except Exception:  # pylint:disable=broad-except
+        pass
+
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),

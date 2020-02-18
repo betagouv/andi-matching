@@ -1,8 +1,8 @@
 import json
 import logging
-import string
-import re
 import os
+import re
+import string
 
 import aiohttp
 import pandas as pd
@@ -78,7 +78,7 @@ def score_build(query, match):
     fuzzywuzzy ratio calculates score on 100: we reduce that to 5 with 1 decimal
     """
     ratio = fuzz.ratio(query, match)
-    return(round(ratio / 20, 1))
+    return round(ratio / 20, 1)
 
 
 def normalize(txt):
