@@ -238,6 +238,29 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
     logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
 
 
+async def match_track(query, params, lat, lon, db):
+    sql = """
+    INSERT INTO trackers (
+        session_id,
+        version,
+        send_order,
+        data
+    ) VALUES ($1, $2, $3, $4);
+    """
+    payload = {
+        'page': 'api',
+        'action': 'match',
+        'meta': {
+            'lat': lat,
+            'lon': lon,
+            'address': query.address,
+            'criteria': query.criteria,
+            'query_id': query.query_id
+        }
+    }
+    await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))
+
+
 @app.post("/match", response_model=ResponseModel)
 async def matching(query: QueryModel, db=Depends(get_db)):
     """
@@ -257,6 +280,12 @@ async def matching(query: QueryModel, db=Depends(get_db)):
     data = await make_data(raw_data)
     logger.debug('clean responses:')
     logger.debug(yaml.dump(data[:4]))
+
+    try:
+        await match_track(query, params, lat, lon, db)
+    except Exception:  # pylint:disable=broad-except
+        pass
+
     return {
         '_v': VERSION,
         '_timestamp': datetime.now(pytz.utc),
