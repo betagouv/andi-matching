@@ -190,6 +190,29 @@ async def get_db():
         await DB_POOL.release(conn)
 
 
+async def match_track(query, params, lat, lon, db):
+    sql = """
+    INSERT INTO trackers (
+        session_id,
+        version,
+        send_order,
+        data
+    ) VALUES ($1, $2, $3, $4);
+    """
+    payload = {
+        'page': 'api',
+        'action': 'match',
+        'meta': {
+            'lat': lat,
+            'lon': lon,
+            'address': query.address,
+            'criteria': query.criteria,
+            'query_id': query.query_id
+        }
+    }
+    await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))
+
+
 # ################################################################ SERVER ROUTES
 # ##############################################################################
 @app.on_event("startup")
@@ -236,29 +259,6 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
     query.server_context.user_agent = request.headers['user-agent']
     await db.execute(sql, query.session_id, query.v, query.order, json.dumps(jsonable_encoder(query)))
     logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
-
-
-async def match_track(query, params, lat, lon, db):
-    sql = """
-    INSERT INTO trackers (
-        session_id,
-        version,
-        send_order,
-        data
-    ) VALUES ($1, $2, $3, $4);
-    """
-    payload = {
-        'page': 'api',
-        'action': 'match',
-        'meta': {
-            'lat': lat,
-            'lon': lon,
-            'address': query.address,
-            'criteria': query.criteria,
-            'query_id': query.query_id
-        }
-    }
-    await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))
 
 
 @app.post("/match", response_model=ResponseModel)
