@@ -255,8 +255,16 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
     ) VALUES ($1, $2, $3, $4);
     """
     query.server_context.reception_timestamp = datetime.now()
-    query.server_context.client_ip = request.client.host
     query.server_context.user_agent = request.headers['user-agent']
+
+    logger.debug('Available request headers: %s', ', '.join(request.headers.keys()))
+    if 'X-Real-IP' in request.headers:
+        query.server_context.client_ip = request.headers['X-Real-Ip']
+    elif 'x-real-ip' in request.headers:
+        query.server_context.client_ip = request.headers['x-real-ip']
+    else:
+        query.server_context.client_ip = request.client.host
+
     await db.execute(sql, query.session_id, query.v, query.order, json.dumps(jsonable_encoder(query)))
     logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
 
