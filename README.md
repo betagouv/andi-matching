@@ -106,7 +106,7 @@ Il est utilisé ici pour tester l'outil sous plusieurs versions Python dans le C
 # Pour lancer tox
 tox
 
-# Pour spécifier une version supportée par le composant
+# Pour spécifier une version supportée par le composant:
 tox -e [py36 | py37]
 ```
 
