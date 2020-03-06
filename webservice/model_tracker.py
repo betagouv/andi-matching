@@ -54,6 +54,7 @@ class Actions(str, Enum):
     more_results = 'more_results'  # L'utilisateur veut afficher plus de résultats
     result_click = 'result_click'  # L'utilisateur clique sur un résultat (meta: vers ou ?)
     guidance_click = 'guidance_click'  # L'utilisateur clique sur les conseils de contact
+    button_click = 'button_click'  # L'utilisateur clique sur un bouton (pas un lien ni un formulaire)
 
 
 class ClientContext(BaseModel):
