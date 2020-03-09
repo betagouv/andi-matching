@@ -45,6 +45,7 @@ class Actions(str, Enum):
     bilan = 'bilan'  # L'utilisateur arrive au bilan (meta: résultats)
     to_matching = 'to_matching'  # L'utilisateur continue vers matching
     to_service = 'to_service'  # L'utilisateur se dirige vers le service
+    to_summary = 'to_summary'  # L'utilisateur se dirige vers le summary (interface matching)
     question_arrival = 'question_arrival'  # L'utilisateur arrive sur une question (meta: laquelle)
     question_departure = 'question_departure'  # L'utilisateur part d'une question (meta: laquelle)
     question_response = 'question_response'  # L'utilisateur répond à une question (meta: quelle question / quelle réponse)
