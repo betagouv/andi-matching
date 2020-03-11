@@ -82,6 +82,7 @@ config = {
         'port': int(os.getenv('PORT', '5000')),
         'log_level': os.getenv('LOG_LEVEL', 'info'),
     },
+    'force_build': os.getenv('FORCE_BUILD', 'false') == 'true',
     'log_level': os.getenv('LOG_LEVEL', 'info'),
     'proxy_prefix': os.getenv('PROXY_PREFIX', '/'),
 }
@@ -101,7 +102,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SUGGEST_STATE = init_rome_suggest()
+SUGGEST_STATE = init_rome_suggest(force=config['force_build'])
 
 DB_POOL = []
 
@@ -309,6 +310,7 @@ async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _t
     Query rome code suggestions according to input string,
     only returning top 15 results.
     """
+    logger.debug('received query %s', [q])
     global SUGGEST_COUNTER  # pylint:disable=global-statement
     SUGGEST_COUNTER += 1
     query_id = uuid.uuid4()
@@ -376,6 +378,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Matching server process')
     parser.add_argument('--config', dest='config', help='config file', default=None)
     parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
+    parser.add_argument('--force-build', dest='forceBuild', action='store_true', default=False, help='Force rebuilding of suggest db')
     args = parser.parse_args()
     if args.debug:
         logger.debug('Debug activated')

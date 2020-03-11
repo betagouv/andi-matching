@@ -18,7 +18,13 @@ from library import words_get
 logger = logging.getLogger(__name__)
 
 
-def init_state():
+def init_state(force=False):
+    idx = buildName('index_dir')
+
+    if checkTable(idx) and not force:
+        logger.warning('ROME Suggest database found, rebuild not forced: proceeding')
+        return get_index(idx)
+
     logger.info('Compiling dataframe references')
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Rome
@@ -47,12 +53,17 @@ def init_state():
     # Préparation et écriture des données
     rome_prep = rome_labels[['rome', 'label', 'source', 'slug']].copy()
     rome_prep['label'] = rome_prep['label'].str.lower()
+    rome_prep = rome_prep.drop_duplicates(subset=['slug', 'rome'])
+
     ogr_prep = ogr_labels[['rome', 'label', 'source', 'slug']].copy()
     ogr_prep['label'] = ogr_prep['label'].str.lower()
+    ogr_prep = ogr_prep.drop_duplicates(subset=['slug', 'rome'])
+
     onisep_prep = onisep_labels[['rome', 'label', 'source', 'slug']].copy()
     onisep_prep['label'] = onisep_prep['label'].str.lower()
+    onisep_prep = onisep_prep.drop_duplicates(subset=['slug', 'rome'])
 
-    idx = createTable('index_dir', overwrite=True)
+    createTable(idx, overwrite=True)
     writeDataframe(idx, rome_prep)
     writeDataframe(idx, ogr_prep[ogr_prep.rome.notnull()])
     writeDataframe(idx, onisep_prep[onisep_prep.rome.notnull()])
@@ -60,7 +71,17 @@ def init_state():
     return get_index(idx)
 
 
-def createTable(raw_name, *, overwrite=False):
+def buildName(raw_name):
+    return re.sub(r'[^A-Za-z0-9]+', '', raw_name)
+
+
+def checkTable(idx):
+    if os.path.exists(idx) and exists_in(idx):
+        return True
+    return False
+
+
+def createTable(name, *, overwrite=False):
     analyzer = StandardAnalyzer() | CharsetFilter(accent_map)
     schema = Schema(
         label=TEXT(stored=True, analyzer=analyzer, lang='fr'),
@@ -68,7 +89,6 @@ def createTable(raw_name, *, overwrite=False):
         source=KEYWORD(stored=True, sortable=True),
         slug=STORED
     )
-    name = re.sub(r'[^A-Za-z0-9]+', '', raw_name)
 
     if not os.path.exists(name):
         os.mkdir(name)
@@ -130,7 +150,7 @@ def match(query_str, idx, limit=40):
         cor = searcher.correct_query(query, query_str)
         results = searcher.search(cor.query, limit=20, collapse=rome_facet)
 
-        # Forced correction search
+        # Word-joker search
         parser = QueryParser('label', idx.schema)
         query = parser.parse(f'{query_str}*')
         results_partial = searcher.search(query, limit=20, collapse=rome_facet)
