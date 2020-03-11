@@ -49,13 +49,15 @@ jobs:
     - ssh -i deploy_ed25519 travis@$HOST "docker pull berzemus/matching:$TRAVIS_COMMIT && sleep 5"
     - ssh -i deploy_ed25519 travis@$HOST "docker stop matching && sleep 4 || :"
     - ssh -i deploy_ed25519 travis@$HOST "docker run -d --rm -p 8085:$PORT
+      --log-opt max-size=10m
+      --log-opt max-file=5
       --add-host=database:172.17.0.1
       --ip 172.17.0.6
       -e PROXY_PREFIX=/api
       -e PG_DSN=$PG_DSN
       -e HOST=$PG_HOST
       -e PORT=$PORT
-      -e LOG_LEVEL=debug
+      -e LOG_LEVEL=info
       --name matching berzemus/matching:$TRAVIS_COMMIT"
 before_install:
 - openssl aes-256-cbc -K $encrypted_8a3564fa26d9_key -iv $encrypted_8a3564fa26d9_iv
