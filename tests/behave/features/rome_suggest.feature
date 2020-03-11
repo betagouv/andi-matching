@@ -7,6 +7,7 @@ Feature: rome_suggest
         Then we receive multiple responses
         And one of them is for rome code "K2401"
 
+
   Scenario: Obtaining rome suggestions for a hairdresser
     Given the api is available
       When we submit "coiff" to the rome_suggest endpoint
@@ -23,14 +24,22 @@ Feature: rome_suggest
         Then we receive one response
         And one of them is for rome code "D1211"
 
+
   Scenario: Empty result when search string is too short
     Given the api is available
       When we submit "pl" to the rome_suggest endpoint
         Then we receive an empty array response
+
 
   Scenario: Empty result when search string is empty
     Given the api is available
       When we submit an empty query to the rome_suggest endpoint
         Then we receive an empty array response
 
+
+  Scenario: Api does not crash on previously crashing request
+    Given the api is available
+      When we submit "conseiller en" to the rome_suggest endpoint
+        Then we receive multiple responses
+        And one of them is for rome code "A1301"
 
