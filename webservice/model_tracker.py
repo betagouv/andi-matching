@@ -56,7 +56,7 @@ class Actions(str, Enum):
     result_click = 'result_click'  # L'utilisateur clique sur un résultat (meta: vers ou ?)
     guidance_click = 'guidance_click'  # L'utilisateur clique sur les conseils de contact
     button_click = 'button_click'  # L'utilisateur clique sur un bouton (pas un lien ni un formulaire)
-    form_submit = 'form_submit' # Envoi d'un formulaire
+    form_submit = 'form_submit'  # Envoi d'un formulaire
 
 
 class ClientContext(BaseModel):
