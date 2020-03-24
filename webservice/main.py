@@ -85,6 +85,18 @@ config = {
     'force_build': os.getenv('FORCE_BUILD', 'false') == 'true',
     'log_level': os.getenv('LOG_LEVEL', 'info'),
     'proxy_prefix': os.getenv('PROXY_PREFIX', '/'),
+    # FIXME: Ip blacklist currently hardcoded, this should be removed
+    # once a propre staging / testing environment is available
+    'ip_blacklist': [
+        '::1',
+        '127.0.0.1',
+        '92.141.121.208',
+        '109.14.83.176',
+        '78.194.230.237',
+        '78.194.248.76',
+        '92.184.117.65',
+        '212.157.112.24',
+    ]
 }
 
 if config['log_level'] == 'debug':
@@ -265,6 +277,13 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
         query.server_context.client_ip = request.headers['x-real-ip']
     else:
         query.server_context.client_ip = request.client.host
+
+    # FIXME: IP blacklisting to be removed or refactored once proper staging / testing environment available
+    if query.server_context.client_ip in config['ip_blacklist']:
+        # covid update: do not track team-members from home (which for now happens by using the dev flag)
+        logger.debug('Client ip %s is in hardcoded blacklist, forcing dev tag', query.server_context.client_ip)
+        query.meta['dev'] = True
+        query.meta['blacklisted'] = True
 
     await db.execute(sql, query.session_id, query.v, query.order, json.dumps(jsonable_encoder(query)))
     logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
