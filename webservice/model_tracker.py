@@ -95,7 +95,7 @@ class Model(BaseModel):
                 "session_id": "77777777-6666-5555-4444-333333333333",
                 "page": "test_page",
                 "action": "arrival",
-                "meta": {},
+                "meta": "{\"dev\":true}",
                 "client_context": {
                     "referer": None,
                 },
