@@ -88,14 +88,22 @@ config = {
     # FIXME: Ip blacklist currently hardcoded, this should be removed
     # once a propre staging / testing environment is available
     'ip_blacklist': [
+        # local
         '::1',
         '127.0.0.1',
+        # Team
         '92.141.121.208',
         '109.14.83.176',
         '78.194.230.237',
         '78.194.248.76',
         '92.184.117.65',
+        '82.124.221.174',
+        '87.66.113.183',
+        # CDC
+        '213.41.72.24',
+        '90.80.178.34',
         '212.157.112.24',
+        '212.157.112.26',
     ]
 }
 
