@@ -16,6 +16,7 @@ import yaml
 from fastapi import Depends, FastAPI
 from fastapi.encoders import jsonable_encoder
 from pydantic import PositiveInt
+from typing import Union
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
@@ -220,6 +221,10 @@ async def match_track(query, params, lat, lon, db):
         data
     ) VALUES ($1, $2, $3, $4);
     """
+    if not is_valid_uuid(query.session_id):
+        # Do not store nor track "ANONYMOUS" session id's
+        logger.debug('Session id is not a valid UUID, skipping')
+        return
     payload = {
         'page': 'api',
         'action': 'match',
@@ -232,6 +237,14 @@ async def match_track(query, params, lat, lon, db):
         }
     }
     await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))
+
+
+def is_valid_uuid(val):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
 
 
 # ################################################################ SERVER ROUTES
@@ -293,6 +306,11 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
         query.meta['dev'] = True
         query.meta['blacklisted'] = True
 
+    if not is_valid_uuid(query.session_id):
+        # Do not store nor track "ANONYMOUS" session id's
+        logger.debug('Session id is not a valid UUID, skipping')
+        return
+
     await db.execute(sql, query.session_id, query.v, query.order, json.dumps(jsonable_encoder(query)))
     logger.debug('Wrote tracking log # %s from %s', query.order, query.session_id)
 
@@ -331,7 +349,7 @@ async def matching(query: QueryModel, db=Depends(get_db)):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def api_rome_suggest(_sid: uuid.UUID, q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(_sid: Union[uuid.UUID, str], q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string,
