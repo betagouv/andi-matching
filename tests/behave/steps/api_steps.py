@@ -25,6 +25,18 @@ def step_impl(context, query):
     context.raw_response = r
 
 
+@when(u'we submit "{query}" to the rome_suggest endpoint while anonymous')
+def step_impl(context, query):
+    r = requests.get(
+        f'http://{context.api_host}:{context.api_port}/rome_suggest',
+        params={
+            'q': query,
+            '_sid': 'ANONYMOUS',
+            '_v': 1
+        })
+    context.raw_response = r
+
+
 @when(u'we submit an empty query to the rome_suggest endpoint')
 def step_impl(context):
     r = requests.get(

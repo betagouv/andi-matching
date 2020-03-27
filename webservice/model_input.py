@@ -55,7 +55,7 @@ class Model(BaseModel):
     v: PositiveInt = Field(..., alias='_v', description="Version")
     timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
     query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    session_id: Union[uuid.UUID, str] = Field(..., alias='_session_id', description="browser session UUID")
     address: Address = Field(..., description="query base address")
     criteria: List[Union[
         Criterion_Distance,

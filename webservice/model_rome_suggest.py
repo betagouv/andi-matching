@@ -1,7 +1,7 @@
 # pylint: skip-file
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from pydantic import BaseModel, Field, PositiveInt
 
@@ -24,7 +24,7 @@ class InputModel(BaseModel):
     v: PositiveInt = Field(..., alias='_v', description="Version")
     timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
     query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    session_id: Union[uuid.UUID, str] = Field(..., alias='_session_id', description="browser session UUID")
     needle: str = Field(..., description="Search string")
 
 
@@ -44,5 +44,5 @@ class Model(BaseModel):
     v: PositiveInt = Field(..., alias='_v', description="Version")
     timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
     query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
-    session_id: uuid.UUID = Field(..., alias='_session_id', description="browser session UUID")
+    session_id: Union[uuid.UUID, str] = Field(..., alias='_session_id', description="browser session UUID")
     data: List[RomeSuggestion] = Field([], description="List of rome suggestions")
