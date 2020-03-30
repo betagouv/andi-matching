@@ -1,4 +1,4 @@
 from . import main
 
 __all__ = ['main']
-__version__ = "1.5.1"
+__version__ = "1.5.2"

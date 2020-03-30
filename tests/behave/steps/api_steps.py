@@ -37,6 +37,17 @@ def step_impl(context, query):
     context.raw_response = r
 
 
+@when(u'we submit "{query}" to the rome_suggest endpoint without session id')
+def step_impl(context, query):
+    r = requests.get(
+        f'http://{context.api_host}:{context.api_port}/rome_suggest',
+        params={
+            'q': query,
+            '_v': 1
+        })
+    context.raw_response = r
+
+
 @when(u'we submit an empty query to the rome_suggest endpoint')
 def step_impl(context):
     r = requests.get(
@@ -54,6 +65,13 @@ def step_impl(context):
     data = context.raw_response.json()
     context.response_data = data
     assert len(data['data']) > 0
+
+
+@then(u'we receive an empty response')
+def step_impl(context):
+    data = context.raw_response.json()
+    context.response_data = data
+    assert len(data['data']) == 0
 
 
 @then(u'we receive one response')

@@ -349,7 +349,7 @@ async def matching(query: QueryModel, db=Depends(get_db)):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def api_rome_suggest(_sid: Union[uuid.UUID, str], q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string,
@@ -363,7 +363,7 @@ async def api_rome_suggest(_sid: Union[uuid.UUID, str], q: str = "", _v: Positiv
         '_v': _v,
         '_timestamp': _timestamp if _timestamp else datetime.now(pytz.utc),
         '_query_id': query_id,
-        '_session_id': _sid,
+        '_session_id': sid,
         'needle': q
     }
     logger.debug('Query params: %s', raw_query)
