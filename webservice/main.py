@@ -8,6 +8,7 @@ import sys
 import uuid
 from datetime import datetime
 from functools import reduce
+from typing import Union
 
 import pytz
 import uvicorn
@@ -15,7 +16,6 @@ import yaml
 from fastapi import Depends, FastAPI
 from fastapi.encoders import jsonable_encoder
 from pydantic import PositiveInt
-from typing import Union
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
