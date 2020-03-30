@@ -9,7 +9,6 @@ import uuid
 from datetime import datetime
 from functools import reduce
 
-import asyncpg
 import pytz
 import uvicorn
 import yaml
@@ -23,6 +22,7 @@ from starlette.requests import Request
 import criterion_parser
 # from library import get_dataframes_v1 as init_rome_suggest
 # from library import rome_suggest_v1 as rome_suggest
+import lib_db
 from lib_rome_suggest_v2 import (
     init_state as init_rome_suggest,
     match as rome_suggest
@@ -49,8 +49,6 @@ TODO:
 """
 VERSION = 1
 START_TIME = datetime.now(pytz.utc)
-COUNTER = 0
-SUGGEST_COUNTER = 0
 
 DEFAULT_MATCHING_PARAMS = {
     'includes': [],
@@ -124,8 +122,6 @@ app.add_middleware(
 )
 
 SUGGEST_STATE = init_rome_suggest(force=config['force_build'])
-
-DB_POOL = []
 
 
 # ######################################################################## UTILS
@@ -203,15 +199,6 @@ async def make_data(responses=None):
     } for r in responses]
 
 
-async def get_db():
-    global DB_POOL  # pylint:disable=global-statement
-    conn = await DB_POOL.acquire()
-    try:
-        yield conn
-    finally:
-        await DB_POOL.release(conn)
-
-
 async def match_track(query, params, lat, lon, db):
     sql = """
     INSERT INTO trackers (
@@ -251,9 +238,7 @@ def is_valid_uuid(val):
 # ##############################################################################
 @app.on_event("startup")
 async def startup_event():
-    global DB_POOL  # pylint:disable=global-statement
-    if os.getenv('NO_ASYNCPG', 'false') == 'false':
-        DB_POOL = await asyncpg.create_pool(**config['postgresql'])
+    await lib_db.init(config)
 
 
 @app.get("/")
@@ -270,13 +255,11 @@ def root():
         'start_time': START_TIME,
         'uptime': f'{delta_s} seconds | {divmod(delta_s, 60)[0]} minutes | {divmod(delta_s, 86400)[0]} days',
         'api_version': VERSION,
-        'api_counter': COUNTER,
-        'api_suggest_counter': SUGGEST_COUNTER,
     }
 
 
 @app.post("/track")
-async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
+async def tracking(query: TrackingModel, request: Request, db=Depends(lib_db.get)):
     """
     Tracking endpoint
     """
@@ -316,13 +299,11 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(get_db)):
 
 
 @app.post("/match", response_model=ResponseModel)
-async def matching(query: QueryModel, db=Depends(get_db)):
+async def matching(query: QueryModel, db=Depends(lib_db.get)):
     """
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
     """
-    global COUNTER  # pylint:disable=global-statement
-    COUNTER += 1
     logger.debug(query)
     trace = get_trace_obj(query)
     lat, lon = await get_address_coords(query.address)
@@ -356,8 +337,6 @@ async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: Pos
     only returning top 15 results.
     """
     logger.debug('received query %s', [q])
-    global SUGGEST_COUNTER  # pylint:disable=global-statement
-    SUGGEST_COUNTER += 1
     query_id = uuid.uuid4()
     raw_query = {
         '_v': _v,
