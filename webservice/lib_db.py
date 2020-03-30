@@ -9,6 +9,9 @@ async def init(config):
 
 
 async def get():
+    # Could have used generator within generator, but that
+    # would have hampered code lisibility and comprehensibility
+    # Besides, the DbPool class manages the pool, not the connections.
     pool = db_pool.get_pool()
     conn = await pool.acquire()
     try:
