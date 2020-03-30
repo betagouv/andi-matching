@@ -50,3 +50,9 @@ Feature: rome_suggest
         Then we receive multiple responses
         And one of them is for rome code "A1301"
 
+
+  Scenario: Rome suggest API responds even without session id
+    Given the api is available
+      When we submit "conseiller en" to the rome_suggest endpoint without session id
+        Then we receive multiple responses
+        And one of them is for rome code "A1301"
