@@ -238,7 +238,9 @@ def is_valid_uuid(val):
 # ##############################################################################
 @app.on_event("startup")
 async def startup_event():
-    await lib_db.init(config)
+    # Do not initiate DB Pool when testing (NO_ASYNCPG is a test-environment specific variable)
+    if os.getenv('NO_ASYNCPG', 'false') == 'false':
+        await lib_db.init(config)
 
 
 @app.get("/")
