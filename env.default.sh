@@ -1,6 +1,8 @@
 # BASH COMPATIBLE
+# Only export if not already defined
+
 # Postgresql DSN
-export PG_DSN="${PG_DSN:=postgres://intendant:0k0libes@localhost:63333/andi}"
+export PG_DSN="${PG_DSN:=postgres://user:password@localhost:63333/andi}"
 
 # Service log level
 export LOG_LEVEL="${LOG_LEVEL:=info}"
