@@ -57,8 +57,10 @@ FROM
         END AS score_size,
         -- crit welcome ------------------------------------------
         CASE
-            WHEN e.pmsmp_interest THEN 3
-            WHEN (e.pmsmp_interest) AND (e.pmsmp_count_recent > 0) THEN 5
+            WHEN (e.pmsmp_interest) AND (e.boe) THEN 5
+            WHEN e.boe THEN 4
+            WHEN (e.pmsmp_interest) AND (e.pmsmp_count_recent > 0) THEN 3
+            WHEN e.pmsmp_interest  THEN 2
             ELSE 1
         END AS score_welcome,
         -- crit contact ------------------------------------------
