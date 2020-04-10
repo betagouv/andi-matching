@@ -55,11 +55,11 @@ DEFAULT_MATCHING_PARAMS = {
     'excludes': [],
     'sizes': ['pme'],
     'multipliers': {
-        'fg': 1,
-        'fn': 5,
-        'ft': 3,
-        'fw': 2,
-        'fc': 1,
+        'fg': 1,  # Geo
+        'fn': 5,  # Naf/Rome
+        'ft': 2,  # Size
+        'fw': 4,  # Welcome
+        'fc': 3,  # Contact
     }
 }
 
