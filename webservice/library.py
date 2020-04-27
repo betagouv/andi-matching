@@ -59,6 +59,7 @@ async def rome_list_query(query):
 # ##################### Rome suggesting functions V1
 # ##################################################
 # OBSOLETE
+# See lib_rome_suggest_v2
 def get_dataframes_v1():
     logger.info('Compiling dataframe references')
     current_dir = os.path.dirname(os.path.abspath(__file__))

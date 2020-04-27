@@ -14,6 +14,11 @@ SPREADSHEET_ID = '187xkbQY_vFCxscWLJ-TjEzgmxQd9qPydcRpKLnVmsBU'
 SHEED_ID = '1686694416'
 RANGE = 'Config_Matching!A:N'
 
+"""
+Deprecated content: Google Drive integration was used in ANDI's first period of
+experimentation
+"""
+
 
 def get_data(_config):
     from match import logger  # pylint:disable=import-outside-toplevel

@@ -121,6 +121,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Contains the read-only Whoosh full-text index, used to provide text-to-rome suggestions
 SUGGEST_STATE = init_rome_suggest(force=config['force_build'])
 
 

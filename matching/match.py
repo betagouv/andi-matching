@@ -19,6 +19,13 @@ Usage:
 ./match.py --lat 32.1344 --lon 5.1213 --rome ROME1 --rome ROME2
 
 Each rome code has a NAF definition file, used for scoring naf/rome adequacy
+
+
+This code was used in the beginning of ANDi, when execution was in batch.
+Nowadays, an API provides this functionality, and this bit has been deprecated.
+
+Multiple input types had been added progressively, culminating in an integration
+with a Google Drive Spreadsheet, acting as front-end to the applicaiton.
 """
 
 
