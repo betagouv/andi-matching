@@ -18,6 +18,21 @@ from library import words_get
 logger = logging.getLogger(__name__)
 
 
+"""
+Initialliy, ANDi directly used the rome suggestion API from LaBonneBoite.
+
+To avoid dependencies, the functionality has been reverse-engineered and improved.
+This was done in a Jupyter Notebook, resulting in less modular code, but with
+shorter development time.
+
+Basically a Whoosh (full-text matching library) index is built, providing the
+text-to-rome suggestion functionnality.
+
+While Whoosh provides a lot more than we used here (suggestions, corrections, ...),
+the current functionnality provides a working basis.
+"""
+
+
 def init_state(force=False):
     idx = buildName('index_dir')
 

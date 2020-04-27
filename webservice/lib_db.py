@@ -4,6 +4,11 @@ import asyncpg
 
 logger = logging.getLogger(__name__)
 
+"""
+Helper functions for the async database pool.
+Avoids the use of globals.
+"""
+
 
 async def init(config):
     await db_pool.init(config)

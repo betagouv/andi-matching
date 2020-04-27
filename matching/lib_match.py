@@ -21,10 +21,23 @@ MAX_VALUE_GROUP = '5'
 
 ANDIDATA_FILE = 'andi_rome2naf_20200130'
 
+"""
+The functionality in this library mostly deals with the preparation and execution
+of the final SQL query.
+
+Two functions are provided to execute the matching query:
+- one sync, used in CLI
+- one async, used by the API
+"""
+
 
 # ##################################################################### HELPERS
 # #############################################################################
 def get_rome_defs(romes):
+    """
+    Loading NAF/ROME correspondance table
+    """
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
     out = {}
     for rome in romes:
@@ -182,6 +195,9 @@ def get_naf_sql(rules):
 
 
 def sub_maxvg(vg, num):
+    """
+    Return the maximum obtained value, subfunction (see below)
+    """
     if num >= int(vg):
         return '1'
     return str(int(vg) - num)
@@ -342,6 +358,9 @@ def ps2pg_dict(q_in, v_in):
 # ####################################################################### MATCH
 # #############################################################################
 def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def'):  # pylint: disable=too-many-arguments
+    """
+    Standard function, used in CLI operation (too slow for real-time), deprecated
+    """
     if max_distance == '':
         max_distance = 10
 
@@ -419,7 +438,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
 
 async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, conn=False):  # pylint: disable=too-many-arguments
     """
-    Async optimized version of run_profile, for web server usage
+    Async optimized version of run_profile, for real-time web server usage
     """
     if max_distance == '':
         max_distance = 10
