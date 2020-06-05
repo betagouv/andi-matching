@@ -15,7 +15,6 @@ notifications:
 addons:
   ssh_known_hosts: 
     - andi.beta.gouv.fr
-    - 80.89.150.201
     - 158.156.182.58
 jobs:
   include:
