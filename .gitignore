@@ -10,3 +10,6 @@ __pycache__
 *.egg-info
 *.sh
 deploy_ed25519
+dist/
+indexdir/
+output/
