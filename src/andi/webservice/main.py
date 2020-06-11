@@ -28,7 +28,7 @@ from lib_rome_suggest_v2 import (
     match as rome_suggest
 )
 from library import geo_code_query, get_codes  # rome_list_query,
-from matching import lib_match
+from src.andi.matching import lib_match
 from model_entreprise import (
     InputModel as EntrepriseInputModel,
     Model as EntrepriseResponseModel
@@ -68,7 +68,6 @@ DEFAULT_MATCHING_PARAMS = {
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
 logger.addHandler(logging.StreamHandler())
-
 
 config = {
     'postgresql': {
@@ -333,7 +332,8 @@ async def matching(query: QueryModel, db=Depends(lib_db.get)):
 
 
 @app.get("/rome_suggest", response_model=RomeResponseModel)
-async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: PositiveInt = 1, _timestamp: datetime = False):
+async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: PositiveInt = 1,
+                           _timestamp: datetime = False):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string,
@@ -401,11 +401,12 @@ async def api_entreprise(_sid: uuid.UUID, siret: str, _v: PositiveInt = 1, _time
     }
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Matching server process')
     parser.add_argument('--config', dest='config', help='config file', default=None)
     parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
-    parser.add_argument('--force-build', dest='forceBuild', action='store_true', default=False, help='Force rebuilding of suggest db')
+    parser.add_argument('--force-build', dest='forceBuild', action='store_true', default=False,
+                        help='Force rebuilding of suggest db')
     args = parser.parse_args()
     if args.debug:
         logger.debug('Debug activated')
@@ -417,3 +418,7 @@ if __name__ == "__main__":
         app,
         **config['server']
     )
+
+
+if __name__ == "__main__":
+    main()

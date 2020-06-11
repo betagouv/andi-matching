@@ -14,8 +14,8 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install build-essential -y
 RUN pipenv install --system --deploy
 
-COPY matching/ /matching
-COPY webservice/ /webservice
+COPY src/andi/matching /matching
+COPY src/andi/webservice /webservice
 COPY Makefile /
 
 WORKDIR /

@@ -3,7 +3,7 @@ from time import sleep
 from multiprocessing import Process
 import uvicorn
 from behave import fixture
-from webservice import main
+from src.andi.webservice import main
 
 PORT = 5555
 HOST = 'localhost'
