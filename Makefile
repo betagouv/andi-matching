@@ -1,33 +1,33 @@
 # TODO: Add unit tests
 
 install:
-	pipenv install --dev
+	pip install -e .[dev]
 
 tests: flake8 pylint-fail-under unittests behave
 
 flake8:
-	pipenv run flake8
+	flake8
 
 pylint:
-	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint --rcfile=.pylintrc '{}' +
+	find . -name "*.py" -not -path '*/\.*' -exec pylint --rcfile=.pylintrc '{}' +
 
 pylint-fail-under:
-	find . -name "*.py" -not -path '*/\.*' -exec pipenv run pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
+	find . -name "*.py" -not -path '*/\.*' -exec pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
 
 behave:
-	export NO_ASYNCPG=true && export PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice && pipenv run behave tests/behave
+	export NO_ASYNCPG=true && behave tests/behave
 
 behave-debug:
-	pipenv run behave tests/behave --logging-level=DEBUG --no-logcapture
+	behave tests/behave --logging-level=DEBUG --no-logcapture
 
 serve-dev:
-	export PYTHONPATH=${PYTHONPATH}:./ && pipenv run ./webservice/main.py --debug
+	andi-api --debug
 
 serve:
-	export PYTHONPATH=${PYTHONPATH}:./ && ./webservice/main.py
+	andi-api
 
 unittests:
-	PYTHONPATH=${PYTHONPATH}:./:./matching:./webservice pipenv run pytest --cov=./webservice .
+	pytest
 
 isort:
-	pipenv run isort ./**/*.py
+	isort ./**/*.py
