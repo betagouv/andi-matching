@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import re
 import shutil
 
@@ -13,7 +14,7 @@ from whoosh.qparser import FuzzyTermPlugin, QueryParser
 from whoosh.query import FuzzyTerm
 from whoosh.support.charset import accent_map
 
-from library import words_get
+from .library import words_get
 
 logger = logging.getLogger(__name__)
 
@@ -41,22 +42,22 @@ def init_state(force=False):
         return get_index(idx)
 
     logger.info('Compiling dataframe references')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    referentiels_dir = pathlib.Path(__file__).resolve().parent / "referentiels"
     # Rome
-    rome_labels = pd.read_csv(f'{current_dir}/referentiels/rome_lbb.csv', sep=',', encoding="utf-8")
+    rome_labels = pd.read_csv(referentiels_dir / "rome_lbb.csv", sep=',', encoding="utf-8")
     rome_labels.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
     rome_labels['source'] = 'rome'
     logging.info(f"Obtained {len(rome_labels)} ROME labels")
 
     # OGR
-    ogr_labels = pd.read_csv(f'{current_dir}/referentiels/ogr_lbb.csv', sep=',', encoding="utf-8")
+    ogr_labels = pd.read_csv(referentiels_dir / "ogr_lbb.csv", sep=',', encoding="utf-8")
     ogr_labels.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
     ogr_labels['source'] = 'ogr'
     ogr_labels['slug'] = ogr_labels['label'].apply(lambda x: slugify(x))
     logging.info(f"Obtained {len(ogr_labels)} OGR labels")
 
     # ONISEP
-    onisep_labels = pd.read_csv(f'{current_dir}/referentiels/metiers_onisep.csv', sep=',', encoding="utf-8")
+    onisep_labels = pd.read_csv(referentiels_dir / "metiers_onisep.csv", sep=',', encoding="utf-8")
     onisep_labels.columns = [
         'label', 'url_onisep', 'pub_name',
         'collection', 'year', 'gencod', 'gfe',

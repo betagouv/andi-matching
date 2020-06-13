@@ -1,11 +1,12 @@
 import json
 import os
+import pathlib
 
 import pandas as pd
 import pytest
 
-import library
-
+import andi.webservice
+import andi.webservice.library as library
 
 """
 Expected geo api output:
@@ -78,10 +79,10 @@ async def test_get_rome_suggestions():
 
 
 def test_get_rome_suggest():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    ROME_DF = pd.read_csv(f'{current_dir}/../webservice/referentiels/rome_lbb.csv')
+    referentiels_dir = pathlib.Path(andi.webservice.__file__).resolve().parent / "referentiels"
+    ROME_DF = pd.read_csv(referentiels_dir / "rome_lbb.csv")
     ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
-    OGR_DF = pd.read_csv(f'{current_dir}/../webservice/referentiels/ogr_lbb.csv')
+    OGR_DF = pd.read_csv(referentiels_dir / "ogr_lbb.csv")
     OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
     ROME_DF['stack'] = ROME_DF.apply(lambda x: library.normalize(x['label']), axis=1)
     OGR_DF['stack'] = OGR_DF.apply(lambda x: library.normalize(x['label']), axis=1)

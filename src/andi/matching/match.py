@@ -7,8 +7,8 @@ import os
 import click
 import yaml
 
-import exec_drive
-from src.andi.matching import lib_match
+from . import exec_drive
+from . import lib_match
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))

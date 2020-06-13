@@ -19,34 +19,33 @@ from pydantic import PositiveInt
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
-import criterion_parser
+from . import criterion_parser
 # from library import get_dataframes_v1 as init_rome_suggest
 # from library import rome_suggest_v1 as rome_suggest
-import lib_db
-from lib_rome_suggest_v2 import (
+from . import lib_db
+from .lib_rome_suggest_v2 import (
     init_state as init_rome_suggest,
     match as rome_suggest
 )
-from library import geo_code_query, get_codes  # rome_list_query,
-from src.andi.matching import lib_match
-from model_entreprise import (
+from .library import geo_code_query, get_codes  # rome_list_query,
+from andi.matching import lib_match
+from .model_entreprise import (
     InputModel as EntrepriseInputModel,
     Model as EntrepriseResponseModel
 )
-from model_input import Model as QueryModel
-from model_output import Model as ResponseModel
-from model_rome_suggest import (
+from .model_input import Model as QueryModel
+from .model_output import Model as ResponseModel
+from .model_rome_suggest import (
     InputModel as RomeInputModel,
     Model as RomeResponseModel
 )
-from model_tracker import Model as TrackingModel
+from .model_tracker import Model as TrackingModel
 
-sys.path.append(os.path.dirname(__file__))
+# FIXME: Keep this ?
+# sys.path.append(os.path.dirname(__file__))
 
-"""
-TODO:
-- monitoring
-"""
+# TODO: monitoring
+
 VERSION = 1
 START_TIME = datetime.now(pytz.utc)
 
