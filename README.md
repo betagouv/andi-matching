@@ -11,10 +11,11 @@
   andi.beta.gouv.fr
 </h1>
 
-[ANDi](https://andi.beta.gouv.fr) est une service numérique en développement visant à faciliter l'immersion professionnelle des personnes en situation de handicap.
+[ANDi](https://andi.beta.gouv.fr) est une service numérique en développement visant à faciliter
+l'immersion professionnelle des personnes en situation de handicap.
 
 # Installation
-
+    
 Obtenir le code source depuis le dépôt Git, puis, pour un environnement de "production" :
 
 ```bash
@@ -28,15 +29,21 @@ pip install -e .[dev]
 
 
 # 🎚andi-matching
-Outil "matching" entre profils PSH et DB Entreprises. En partant des critères de recherches spécifiques à une PSH, l'outil permet de retrouver les entreprises qui y répondent tout en nuancant les résultats, permettant de limiter certains biais de sélection (effet de primauté, ...)
 
-Actuellement, le service mathing est se compose de l'**Outil Matching**, la librairie métier, et l'**API Web** qui publie une interface REST de l'outil de matching.
+Outil "matching" entre profils PSH et DB Entreprises. En partant des critères de recherches
+spécifiques à une PSH, l'outil permet de retrouver les entreprises qui y répondent tout en nuancant
+les résultats, permettant de limiter certains biais de sélection (effet de primauté, ...)
+
+Actuellement, le service mathing est se compose de l'**Outil Matching**, la librairie métier, et
+l'**API Web** qui publie une interface REST de l'outil de matching.
 
 ## Utilisation et déploiement
 ### Outil matching
-Après installation par `pipenv` de l'environnemnt nécessaire (`pipenv install` à la racine du projet), l'outil de matching offre une interface en ligne de commande:
-`export PYTHONPATH=./:$PYTHONPATH && matching/match.py`
+
+L'application s'exécutant dans une console shell est invoquée par la commande `andi-matching`.
+
 ```bash
+andi-matching --help
 
 Usage: andi-matching [OPTIONS] COMMAND [ARGS]...
 
@@ -51,16 +58,24 @@ Commands:
   run-csv
   run-drive
 ```
-L'interface CLI accepte des paramètres directement saisis en ligne de commande, un lien vers un Google Sheet contenant les variables nécessaires, ou un fichier CSV.
+
+L'interface CLI accepte des paramètres directement saisis en ligne de commande, un lien vers un
+Google Sheet contenant les variables nécessaires, ou un fichier CSV.
 
 Exemples de commande:
 ```bash
-andi-matching --lat '49.0465' --lon '2.0655' --max-distance 10 --rome K2112  --config_file config.yaml --debug --pme
+andi-matching --lat '49.0465' --lon '2.0655' --max-distance 10 --rome K2112 \
+              --config_file config.yaml --debug --pme
 andi-matching --config_file config.yaml run-drive --profile [PROFIL]
 ```
 
+TODO: fournir plus de détails sur ce que font les commandes.
+TODO : fournir la définition des colonnes des fichiers CSV et Google sheet
+
+
 ### API Matching
 Les variables d'environnement suivantes doivent être définies:
+
 ```bash
 > cat env.sh 
 export PG_DSN=postgres://[POSTGRES_DSN]
@@ -70,7 +85,8 @@ export LOG_LEVEL=[LOG_LEVEL]
 > . env.sh
 ```
 
-Pour lancer l'API matching en local (après un `pipenv install`)
+TODO : passser par un fichier ".env" classique
+
 ```
 # en _debug_
 make serve-dev
@@ -90,19 +106,26 @@ Le déploiement est assuré par Travis, et est détaillé dans le fichier `.trav
 ## Socle technique
 
 ### Outil Matching
-- Requête SQL utilisant le méthode [RFM](https://en.wikipedia.org/wiki/RFM_(customer_value\)) qui génère des ensembles de résultat, en fonction du score différencié sur les critères employés
-- Python 3.7+
+
+- Requête SQL utilisant la méthode [RFM](https://en.wikipedia.org/wiki/RFM_(customer_value\)) qui
+  génère des ensembles de résultat, en fonction du score différencié sur les critères employés
+- Python 3.6+
 - Docker
 
 ### API Matching
-- Python 3.7+
-- framework [FastAPI](https://github.com/tiangolo/fastapi) implémentant [OpenAPI](https://pydantic-docs.helpmanual.io/) et [JSON Schema](http://json-schema.org/), intégrant [Starlette](https://github.com/encode/starlette) (framework ASGI, support WebSocket, GraphQL, CORS, ...) et [pydantic](https://pydantic-docs.helpmanual.io/) (validation de données)
+
+- Python 3.6+
+- framework [FastAPI](https://github.com/tiangolo/fastapi) implémentant
+  [OpenAPI](https://pydantic-docs.helpmanual.io/) et [JSON Schema](http://json-schema.org/),
+  intégrant [Starlette](https://github.com/encode/starlette) (framework ASGI, support WebSocket,
+  GraphQL, CORS, ...) et [pydantic](https://pydantic-docs.helpmanual.io/) (validation de données)
 - Docker
 - documentation API auto-générée (via OpenAPi - ex-swagger)
 
 ## Tests et validation
 
-Le lancement des tests et outils de validation (flake8, pylint, pytest) sont définis dans le `MakeFile`.
+Le lancement des tests et outils de validation (flake8, pylint, pytest) sont définis dans le
+`MakeFile`.
 
 Ils sont lancés comme suit:
 ```bash
@@ -113,18 +136,25 @@ make tests
 make [flake8 | pylint | unittests]
 
 ```
-Note: la commande `tests` fait passer `pylint` pour autant que le score dépasse 9.5 (cf. `MakeFile` => `pylint-fail-under`)
+Note: la commande `tests` fait passer `pylint` pour autant que le score dépasse 9.5 (cf. `MakeFile`
+=> `pylint-fail-under`)
+
+TODO : utiliser "invoke" au lieu de "make" pour permettre l'exécution sous Windows.
 
 ### Sous **tox**
-Tox est le nouvel outil recommandé par python pour tester (et déployer) les composants Python.
-Il est utilisé ici pour tester l'outil sous plusieurs versions Python dans le CI de Travis.
+
+Tox est le nouvel outil recommandé par python pour tester (et déployer) les composants Python. Il
+est utilisé ici pour tester l'outil sous plusieurs versions Python dans le CI de Travis.
+
 ```bash
 # Pour lancer tox
 tox
 
 # Pour spécifier une version supportée par le composant:
-tox -e [py36 | py37]
+tox -e [py36 | py37 | py38]
 ```
 
 ### Travis
-Le fichier `.travis.yml` détaille les procédures de test et de validation automatisées, ainsi que le _build_ et le déploiement.
+
+Le fichier `.travis.yml` détaille les procédures de test et de validation automatisées, ainsi que le
+_build_ et le déploiement.
