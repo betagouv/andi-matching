@@ -53,6 +53,7 @@ def show_results(res):
 @click.option('--config_file', default=None)
 @click.option('--debug', is_flag=True, default=False)
 @click.option('--limit', help="Limit output rows (testing only)", default=False)
+@click.version_option(message="%(version)s")
 @click.pass_context
 def main(ctx, config_file, debug, limit):
     if debug:

@@ -37,9 +37,7 @@ from .model_rome_suggest import (
     Model as RomeResponseModel
 )
 from .model_tracker import Model as TrackingModel
-
-# FIXME: Keep this ?
-# sys.path.append(os.path.dirname(__file__))
+from . import __version__
 
 # TODO: monitoring
 
@@ -61,10 +59,13 @@ DEFAULT_MATCHING_PARAMS = {
 
 # ################################################### SETUP AND ARGUMENT PARSING
 # ##############################################################################
+
+# TODO: Configure logging in a config file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.getLevelName('INFO'))
 logger.addHandler(logging.StreamHandler())
 
+# TODO: This should go to a "defaultsettings.py" module
 config = {
     'postgresql': {
         'dsn': os.getenv('PG_DSN', 'postgres://user:pass@localhost:5432/db'),
@@ -107,7 +108,7 @@ if config['log_level'] == 'debug':
 logger.debug('Debug activated')
 logger.debug('Config values: \n%s', yaml.dump(config))
 
-app = FastAPI(openapi_prefix=config['proxy_prefix'])
+app = FastAPI(root_path=config['proxy_prefix'])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -150,6 +151,7 @@ async def get_address_coords(address):
     return lat, lon
 
 
+# FIXME: Why is it "async" when there's no "await" inside!
 async def make_data(responses=None):
     """
     Create response data obect:
@@ -275,6 +277,7 @@ async def tracking(query: TrackingModel, request: Request, db=Depends(lib_db.get
     logger.debug('Available request headers: %s', ', '.join(request.headers.keys()))
     if 'X-Real-IP' in request.headers:
         query.server_context.client_ip = request.headers['X-Real-Ip']
+    # FIXME: Useless "elif" since headers is a case insensitive keys multi-dict
     elif 'x-real-ip' in request.headers:
         query.server_context.client_ip = request.headers['x-real-ip']
     else:
@@ -397,12 +400,19 @@ async def api_entreprise(_sid: uuid.UUID, siret: str, _v: PositiveInt = 1, _time
     }
 
 
-def main():
+def make_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Matching server process')
-    parser.add_argument('--config', dest='config', help='config file', default=None)
-    parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
-    parser.add_argument('--force-build', dest='forceBuild', action='store_true', default=False,
-                        help='Force rebuilding of suggest db')
+    add_arg = parser.add_argument
+    add_arg('--config', dest='config', help='config file', default=None)
+    add_arg('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
+    add_arg('--force-build', dest='forceBuild', action='store_true', default=False,
+            help='Force rebuilding of suggest db')
+    add_arg("--version", action="version", version=__version__)
+    return parser
+
+
+def main():
+    parser = make_arg_parser()
     args = parser.parse_args()
     if args.debug:
         logger.debug('Debug activated')
