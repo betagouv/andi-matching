@@ -146,6 +146,9 @@ async def get_address_coords(address):
         geo_data = await geo_code_query(addr_string)
     elif address.type == 'geoapigouv':
         geo_data = address.value
+    else:
+        logger.error(f"Unknown address type '{address.type}'.")
+        raise
     lat, lon = get_codes(geo_data)
     logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
     return lat, lon

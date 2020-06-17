@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import csv
 import json
 import logging
@@ -56,6 +55,7 @@ def show_results(res):
 @click.version_option(message="%(version)s")
 @click.pass_context
 def main(ctx, config_file, debug, limit):
+    ctx.obj = {}
     if debug:
         logger.setLevel(logging.getLevelName('DEBUG'))
         logger.debug('Debugging enabled')
