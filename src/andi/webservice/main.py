@@ -408,6 +408,7 @@ def make_arg_parser() -> argparse.ArgumentParser:
     add_arg = parser.add_argument
     add_arg('--config', dest='config', help='config file', default=None)
     add_arg('--debug', dest='debug', action='store_true', default=False, help='Debug mode')
+    # FIXME: option apparemment inutile. Supprimer ?
     add_arg('--force-build', dest='forceBuild', action='store_true', default=False,
             help='Force rebuilding of suggest db')
     add_arg("--version", action="version", version=__version__)

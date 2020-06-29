@@ -28,7 +28,7 @@ pip install -e .[dev]
 ```
 
 
-# 🎚andi-matching
+# andi-matching
 
 Outil "matching" entre profils PSH et DB Entreprises. En partant des critères de recherches
 spécifiques à une PSH, l'outil permet de retrouver les entreprises qui y répondent tout en nuancant
@@ -38,7 +38,8 @@ Actuellement, le service mathing est se compose de l'**Outil Matching**, la libr
 l'**API Web** qui publie une interface REST de l'outil de matching.
 
 ## Utilisation et déploiement
-### Outil matching
+
+### Outil CLI matching
 
 L'application s'exécutant dans une console shell est invoquée par la commande `andi-matching`.
 
@@ -74,6 +75,7 @@ TODO : fournir la définition des colonnes des fichiers CSV et Google sheet
 
 
 ### API Matching
+
 Les variables d'environnement suivantes doivent être définies:
 
 ```bash
@@ -85,16 +87,12 @@ export LOG_LEVEL=[LOG_LEVEL]
 > . env.sh
 ```
 
-TODO : passser par un fichier ".env" classique
+TODO : passer par un fichier ".env" classique
 
-```
-# en _debug_
-make serve-dev
-# sinon
-make serve
-```
+Lancer le serveur avec soit la commande `andi-api` soit en utilisant l'infrastructure de déploiement
+ASGI, à travers le fichier `main.asgi` à la racine de ce dépôt.
 
-### Déploiement
+### Déploiement via Travis / Docker (obsolète et non maintenu)
 
 Le déploiement de l'API Matching et de la librairie est détaillée dans le `DockerFile`. Celui-ci se
 contente de définir les variables d'environnement requises, d'installer l'environnement Python, de
@@ -109,12 +107,12 @@ Le déploiement est assuré par Travis, et est détaillé dans le fichier `.trav
 
 - Requête SQL utilisant la méthode [RFM](https://en.wikipedia.org/wiki/RFM_(customer_value\)) qui
   génère des ensembles de résultat, en fonction du score différencié sur les critères employés
-- Python 3.6+
+- Python 3.7+
 - Docker
 
 ### API Matching
 
-- Python 3.6+
+- Python 3.7+
 - framework [FastAPI](https://github.com/tiangolo/fastapi) implémentant
   [OpenAPI](https://pydantic-docs.helpmanual.io/) et [JSON Schema](http://json-schema.org/),
   intégrant [Starlette](https://github.com/encode/starlette) (framework ASGI, support WebSocket,
