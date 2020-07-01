@@ -23,7 +23,7 @@ async def geo_code_query(query):
     params = {
         'q': query,
     }
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, params=params) as response:
             return await response.json()
 
@@ -47,7 +47,7 @@ async def rome_list_query(query):
     params = {
         'term': query,
     }
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, params=params) as response:
             logger.debug('Querying LaBonneBoite...')
             response = await response.text()

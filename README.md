@@ -15,7 +15,16 @@
 l'immersion professionnelle des personnes en situation de handicap.
 
 # Installation
-    
+
+## Dépendances
+
+`andi-matching` nécessite Python 3.7 ou 3.8
+
+**/!\ Attention** : Seul Python 3.7 est supporté sous Windows du fait d'un bug de `aiohttp` lorsque
+votre poste accède au Web à travers un proxy. [Lire ceci pour plus de détails](https://github.com/aio-libs/aiohttp/issues/4536).
+
+## Modes opératoires
+
 Obtenir le code source depuis le dépôt Git, puis, pour un environnement de "production" :
 
 ```bash
@@ -82,6 +91,10 @@ Les variables d'environnement suivantes doivent être définies:
 > cat env.sh 
 export PG_DSN=postgres://[POSTGRES_DSN]
 export LOG_LEVEL=[LOG_LEVEL]
+
+# Si Internet est derrière un proxy
+export HTTP_PROXY=http://mon.proxy.tld
+export HTTPS_PROXY=http://mon.proxy.tld
 
 # Pour les appliquer:
 > . env.sh
