@@ -1,4 +1,3 @@
-
 """
 Traitement des critères du matching.
 

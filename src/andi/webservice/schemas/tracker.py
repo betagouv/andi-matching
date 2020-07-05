@@ -1,10 +1,3 @@
-import uuid
-from datetime import datetime
-from enum import Enum
-
-from pydantic import BaseModel, Field, IPvAnyAddress, Json, PositiveInt
-
-
 """
 Data points:
 ------------
@@ -27,6 +20,11 @@ server context
     - reception_timestamp
 ---
 """
+import uuid
+from datetime import datetime
+from enum import Enum
+
+from pydantic import BaseModel, Field, IPvAnyAddress, Json, PositiveInt
 
 
 class page(str, Enum):

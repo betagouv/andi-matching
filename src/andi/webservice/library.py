@@ -1,13 +1,25 @@
+"""
+Utilitaires divers et inclassables de l'appli
+"""
+
+import datetime
+import functools
 import json
 import logging
 import os
 import re
 import string
+import typing as t
+import uuid
 
 import aiohttp
 import pandas as pd
+import pytz
 import unidecode
 from fuzzywuzzy import fuzz
+from pydantic import BaseModel
+
+from . import criterion_parser
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +46,29 @@ def get_codes(data):
     return lat, lon
 
 
-# ##################### Rome suggesting functions V0
-# ##################################################
-# OBSOLETE
+DEFAULT_MATCHING_PARAMS = {
+    'includes': [],
+    'excludes': [],
+    'sizes': ['pme'],
+    'multipliers': {
+        'fg': 1,  # Geo
+        'fn': 5,  # Naf/Rome
+        'ft': 2,  # Size
+        'fw': 4,  # Welcome
+        'fc': 3,  # Contact
+    }
+}
+
+
+def parse_param(accumulator, criterion):
+    res = getattr(criterion_parser, criterion.name)(criterion, accumulator)
+    return res
+
+
+def get_parameters(criteria):
+    return functools.reduce(parse_param, criteria, DEFAULT_MATCHING_PARAMS)
+
+
 async def rome_list_query(query):
     """
     DEPRECATED
@@ -186,5 +218,26 @@ def rome_suggest_v1(query, state):
         )
     return sorted(list(results.values()), key=lambda e: e['score'], reverse=True)
 
-# ##################### Rome suggesting functions V2
-# ##################################################
+
+def utc_now() -> datetime.datetime:
+    """
+    Returns:
+        Maintenant en UTC
+    """
+    return datetime.datetime.now(tz=pytz.utc)
+
+
+def is_valid_uuid(val):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
+
+
+def get_trace_obj(query: BaseModel) -> t.Dict[str, t.Any]:
+    return {
+        '_query_id': query.query_id,
+        '_session_id': query.session_id,
+        '_trace': 'not_implemented_yet',
+    }

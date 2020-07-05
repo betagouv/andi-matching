@@ -1,12 +1,4 @@
 # pylint: skip-file
-import uuid
-from datetime import datetime
-from enum import Enum
-from typing import List, Union
-
-from pydantic import BaseModel, Field, PositiveInt
-
-
 """
 Modèle des données en sortie pour le service matching
 
@@ -39,6 +31,12 @@ Prototype convenu:
 }
 ```
 """
+from enum import Enum
+from typing import List
+
+from pydantic import BaseModel, Field
+
+from .common import MetaModel, get_schema_example
 
 
 class SizeTypes(str, Enum):
@@ -52,6 +50,14 @@ class Coordinates(BaseModel):
     lat: float
     lon: float
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "lat": 21.656554,
+                "lon": 55.323567
+            }
+        }
+
 
 class Scoring(BaseModel):
     geo: int
@@ -59,6 +65,17 @@ class Scoring(BaseModel):
     contact: int
     pmsmp: int
     naf: int
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "geo": 3,
+                "size": 5,
+                "contact": 1,
+                "pmsmp": 1,
+                "naf": 4
+            }
+        }
 
 
 class ResponseData(BaseModel):
@@ -79,49 +96,44 @@ class ResponseData(BaseModel):
     score: int
     activity: str
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "29439",
+                "name": "REVILOX",
+                "address": "6 Rue de la Métairie, 95640 Marines, France",
+                "departement": "Val-d'Oise",
+                "phonenumber": "02345670",
+                "city": "Marines",
+                "coords": {
+                    **get_schema_example(Coordinates)
+                },
+                "naf": "1623Z",
+                "siret": "32774533700029",
+                "distance": 5,
+                "scoring": {
+                    **get_schema_example(Scoring)
+                },
+                "score": 53,
+                "activity": "Fabrication de charpentes et d'autres menuiseries",
+                "size": "20-49"
+            }
+        }
 
-class Model(BaseModel):
+
+class Model(MetaModel):
     """
     Modèle de validation des résultats de l'outil de matching
     """
-    v: PositiveInt = Field(..., alias='_v', description="Version")
-    timestamp: datetime = Field(..., alias='_timestamp', description="Timestamp (UNIX Epoch)")
-    query_id: uuid.UUID = Field(..., alias='_query_id', description="query UUID")
-    session_id: Union[uuid.UUID, str] = Field(..., alias='_session_id', description="browser session UUID")
     trace: str = Field(..., alias='_trace', description="Trace ID")
     data: List[ResponseData] = Field(..., description="response data")
 
     class Config:
         schema_extra = {
             'example': {
-                "_v": 1,
-                "_timestamp": "2019-11-18T10:14:14.758899+00:00",
-                "_query_id": "efb7afcf-836b-4029-a3ce-f7c0b4b3499b",
-                "_session_id": "efb7afcf-836b-4029-a3ce-f7c0b4b3499b",
+                **get_schema_example(MetaModel),
                 "_trace": "not_implemented_yet",
                 "data": [{
-                    "id": "29439",
-                    "name": "REVILOX",
-                    "address": "6 Rue de la Métairie, 95640 Marines, France",
-                    "departement": "Val-d'Oise",
-                    "phonenumber": "02345670",
-                    "city": "Marines",
-                    "coords": {
-                        "lat": 93,
-                        "lon": 18
-                    },
-                    "naf": "1623Z",
-                    "siret": "32774533700029",
-                    "distance": 5,
-                    "scoring": {
-                        "geo": 3,
-                        "size": 5,
-                        "contact": 1,
-                        "pmsmp": 1,
-                        "naf": 4
-                    },
-                    "score": 53,
-                    "activity": "Fabrication de charpentes et d'autres menuiseries",
-                    "size": "20-49"
+                    **get_schema_example(ResponseData)
                 }]
             }}

@@ -1,24 +1,3 @@
-import logging
-import os
-import pathlib
-import re
-import shutil
-
-import pandas as pd
-from slugify import slugify
-from whoosh import sorting
-from whoosh.analysis import CharsetFilter, StandardAnalyzer
-from whoosh.fields import KEYWORD, STORED, TEXT, Schema
-from whoosh.index import create_in, exists_in, open_dir
-from whoosh.qparser import FuzzyTermPlugin, QueryParser
-from whoosh.query import FuzzyTerm
-from whoosh.support.charset import accent_map
-
-from .library import words_get
-
-logger = logging.getLogger(__name__)
-
-
 """
 Initialliy, ANDi directly used the rome suggestion API from LaBonneBoite.
 
@@ -32,13 +11,51 @@ text-to-rome suggestion functionnality.
 While Whoosh provides a lot more than we used here (suggestions, corrections, ...),
 the current functionnality provides a working basis.
 """
+import logging
+import os
+import pathlib
+import re
+import shutil
+import typing as t
+
+import pandas as pd
+from slugify import slugify
+from whoosh import sorting
+from whoosh.analysis import CharsetFilter, StandardAnalyzer
+from whoosh.fields import KEYWORD, STORED, TEXT, Schema
+from whoosh.index import create_in, exists_in, open_dir
+from whoosh.qparser import FuzzyTermPlugin, QueryParser
+from whoosh.query import FuzzyTerm
+from whoosh.support.charset import accent_map
+
+from .library import words_get
+from .settings import config
+
+logger = logging.getLogger(__name__)
+
+# Cache pour SUGGEST_STATE
+_suggest_state = None
+
+
+# Attention ! Python 3.7+
+def __getattr__(name: str) -> t.Any:
+    """
+    Lazy globals init
+    pseudo globale SUGGEST_STATE
+    """
+    global _suggest_state
+    if name == "SUGGEST_STATE":
+        if _suggest_state is None:
+            _suggest_state = init_state(force=config.REBUILD_SUGGEST_STATE)
+        return _suggest_state
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def init_state(force=False):
-    idx = buildName('index_dir')
+    idx = build_name('index_dir')
 
-    if checkTable(idx) and not force:
-        logger.warning('ROME Suggest database found, rebuild not forced: proceeding')
+    if check_table(idx) and not force:
+        logger.info('ROME Suggest database found, rebuild not forced: proceeding')
         return get_index(idx)
 
     logger.info('Compiling dataframe references')
@@ -79,25 +96,25 @@ def init_state(force=False):
     onisep_prep['label'] = onisep_prep['label'].str.lower()
     onisep_prep = onisep_prep.drop_duplicates(subset=['slug', 'rome'])
 
-    createTable(idx, overwrite=True)
-    writeDataframe(idx, rome_prep)
-    writeDataframe(idx, ogr_prep[ogr_prep.rome.notnull()])
-    writeDataframe(idx, onisep_prep[onisep_prep.rome.notnull()])
+    create_table(idx, overwrite=True)
+    write_dataframe(idx, rome_prep)
+    write_dataframe(idx, ogr_prep[ogr_prep.rome.notnull()])
+    write_dataframe(idx, onisep_prep[onisep_prep.rome.notnull()])
     logging.info('Suggestion index tables written')
     return get_index(idx)
 
 
-def buildName(raw_name):
+def build_name(raw_name):
     return re.sub(r'[^A-Za-z0-9]+', '', raw_name)
 
 
-def checkTable(idx):
+def check_table(idx):
     if os.path.exists(idx) and exists_in(idx):
         return True
     return False
 
 
-def createTable(name, *, overwrite=False):
+def create_table(name, *, overwrite=False):
     analyzer = StandardAnalyzer() | CharsetFilter(accent_map)
     schema = Schema(
         label=TEXT(stored=True, analyzer=analyzer, lang='fr'),
@@ -122,12 +139,13 @@ def createTable(name, *, overwrite=False):
     return name
 
 
-def writeRecord(idx, **fields):
+# FIXME: Apparemment inutilisé
+def write_record(idx, **fields):
     writer = idx.writer()
     writer.add_document(**fields)
 
 
-def writeDataframe(idx_name, df):
+def write_dataframe(idx_name, df):
     idx = open_dir(idx_name)
     writer = idx.writer()
     try:
@@ -182,14 +200,14 @@ def match(query_str, idx, limit=40):
         results_fuzzy = searcher.search(query, limit=limit, collapse=rome_facet)
 
         results.upgrade_and_extend(results_fuzzy)
-        for r in results:
+        for res in results:
             ret_results.append({
-                'id': r['rome'],
-                'label': r['label'],
-                'value': r['label'],
-                'occupation': r['slug'],
-                'source': r['source'],
-                'score': r.score
+                'id': res['rome'],
+                'label': res['label'],
+                'value': res['label'],
+                'occupation': res['slug'],
+                'source': res['source'],
+                'score': res.score
             })
 
     return sorted(ret_results, key=lambda e: e['score'], reverse=True)

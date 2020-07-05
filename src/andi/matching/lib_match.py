@@ -357,7 +357,8 @@ def ps2pg_dict(q_in, v_in):
 
 # ####################################################################### MATCH
 # #############################################################################
-def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, rome2naf='def'):  # pylint: disable=too-many-arguments
+def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers,
+                rome2naf='def'):  # pylint: disable=too-many-arguments
     """
     Standard function, used in CLI operation (too slow for real-time), deprecated
     """
@@ -436,7 +437,8 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
     return result
 
 
-async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, multipliers, conn=False):  # pylint: disable=too-many-arguments
+async def run_profile_async(lat, lon, max_distance, romes, includes, excludes, sizes, multipliers,
+                            conn=False, limit=None):  # pylint: disable=too-many-arguments
     """
     Async optimized version of run_profile, for real-time web server usage
     """
@@ -475,7 +477,7 @@ async def run_profile_async(cfg, lat, lon, max_distance, romes, includes, exclud
     sql, params = ps2pg(SQLLIB.MATCH_QUERY.format(
         naf_rules=naf_sql,
         size_rules=size_sql,
-        limit_test=f'LIMIT {cfg["limit"]}' if 'limit' in cfg else ''
+        limit_test=f'LIMIT {limit}' if limit else ''
     ), data)
 
     logger.debug("Obtained SQL:\n%s\n\n parameters:\n%s", sql, params)

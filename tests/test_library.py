@@ -1,12 +1,3 @@
-import json
-import pathlib
-
-import pandas as pd
-import pytest
-
-import andi.webservice
-import andi.webservice.library as library
-
 """
 Expected geo api output:
 {
@@ -47,6 +38,13 @@ Expected geo api output:
     "limit": 5
 }
 """
+import json
+import pathlib
+
+import andi.webservice
+import andi.webservice.library as library
+import pandas as pd
+import pytest
 
 
 @pytest.mark.asyncio
