@@ -57,7 +57,7 @@ def create_asgi_app() -> FastAPI:
 def make_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Matching server process')
     add_arg = parser.add_argument
-    add_arg("-c", "--config-file", type=argparse.FileType, default=None,
+    add_arg("-c", "--config-file", type=argparse.FileType("r"), default=None,
             help=("Fichier de configuration remplaçant celui fourni par la variable "
                   f"d'environnement {CONFIG_FILE_ENNVAR}"
                   )
