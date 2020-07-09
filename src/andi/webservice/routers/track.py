@@ -8,7 +8,7 @@ from datetime import datetime
 from fastapi import APIRouter, Request, Depends
 from fastapi.encoders import jsonable_encoder
 
-from .. import lib_db
+from .. import dbpool
 from ..library import is_valid_uuid
 from andi.webservice.schemas.tracker import Model as TrackingModel
 from ..settings import config
@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.post("/track")
-async def tracking(query: TrackingModel, request: Request, db=Depends(lib_db.get)):
+async def tracking(query: TrackingModel, request: Request, db=Depends(dbpool.get)):
     """
     Tracking endpoint
     """

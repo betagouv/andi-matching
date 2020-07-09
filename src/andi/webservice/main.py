@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 import argparse
 import logging
-import logging.config
 import os
 import pathlib
 
+import asyncpg
 import dotenv
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from . import __version__
-from . import lib_db
+from . import dbpool
 from . import lib_rome_suggest_v2
+from . import settings
 from .routers import all_routers
-from .settings import config, CONFIG_FILE_ENNVAR, bootstrap as settings_bootstrap
+
+logger = logging.getLogger(__name__)
 
 
 def create_asgi_app() -> FastAPI:
@@ -25,13 +27,11 @@ def create_asgi_app() -> FastAPI:
         Application ASGI andi-matching initialisée et paramétrée
     """
     dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
-    # On initialise la config si nécessaire
-    if len(vars(config)) == 0:
-        settings_bootstrap()
-    logging.config.dictConfig(config.LOGGING)
+    # On bootstrape la config si nécessaire
+    config = settings.config
 
     # Juste pour bootstrapper l'index Wooosh
-    lib_rome_suggest_v2.SUGGEST_STATE
+    _ = lib_rome_suggest_v2.SUGGEST_STATE
 
     # Construction et paramétrage de l'app ASGI
     app = FastAPI(**config.FASTAPI_OPTIONS)
@@ -46,8 +46,12 @@ def create_asgi_app() -> FastAPI:
     @app.on_event("startup")
     async def startup_event():
         # Do not initiate DB Pool when testing (NO_ASYNCPG is a test-environment specific variable)
+        async def pool_factory():
+            pool = await asyncpg.create_pool(**config.PG_CONNECTIONS_POOL)
+            return pool
+
         if os.getenv('NO_ASYNCPG', 'false') == 'false':
-            await lib_db.init(config)
+            await dbpool.init(pool_factory)
 
     for router in all_routers:
         app.include_router(router)
@@ -57,9 +61,9 @@ def create_asgi_app() -> FastAPI:
 def make_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Matching server process')
     add_arg = parser.add_argument
-    add_arg("-c", "--config-file", type=argparse.FileType, default=None,
+    add_arg("-c", "--config-file", type=argparse.FileType("r"), default=None,
             help=("Fichier de configuration remplaçant celui fourni par la variable "
-                  f"d'environnement {CONFIG_FILE_ENNVAR}"
+                  f"d'environnement {settings.CONFIG_FILE_ENNVAR}"
                   )
             )
     add_arg("--dump-config", action="store_true",
@@ -77,9 +81,13 @@ def main():
         defaultconfig_path = pathlib.Path(__file__).resolve().parent / "defaultsettings.py"
         print(defaultconfig_path.read_text())
         return
+
+    # Un fichier de config person par la ligne de connande
     if args.config_file is not None:
-        os.environ[CONFIG_FILE_ENNVAR] = args.config_file.name
+        os.environ[settings.CONFIG_FILE_ENNVAR] = args.config_file.name
         args.config_file.close()
+        settings.reset_config()
+    config = settings.config
     app = create_asgi_app()
     config.UVICORN_OPTIONS["log_config"] = config.LOGGING
     uvicorn.run(
