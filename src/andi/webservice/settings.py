@@ -13,6 +13,15 @@ _config = types.SimpleNamespace()
 _defaultsettings_path = pathlib.Path(__file__).resolve().parent / "defaultsettings.py"
 
 
+def reset_config():
+    """
+    Artifice permettant de forcer la re-lecture du pseudo-global ``config``
+    depuis le ou les fichiers.
+    """
+    global _config
+    _config = types.SimpleNamespace()
+
+
 def __getattr__(name: str) -> t.Any:
     """Lazy loading of the config object"""
     global _config
@@ -21,3 +30,5 @@ def __getattr__(name: str) -> t.Any:
             pyflexconfig.bootstrap(_config, defaults_path=_defaultsettings_path,
                                    custom_path_envvar=CONFIG_FILE_ENNVAR)
         return _config
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+

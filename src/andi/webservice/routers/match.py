@@ -9,7 +9,7 @@ from andi.matching import lib_match
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 
-from .. import lib_db
+from .. import dbpool
 from ..hardconfig import API_VERSION
 from ..library import get_trace_obj, get_parameters, utc_now, is_valid_uuid
 from ..schemas.input import Model as QueryModel
@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 @router.post("/match", response_model=ResponseModel)
-async def matching(query: QueryModel, db=Depends(lib_db.get)):
+async def matching(query: QueryModel, db=Depends(dbpool.get)):
     """
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
