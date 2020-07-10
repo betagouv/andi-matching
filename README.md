@@ -87,14 +87,14 @@ peut se faire de deux façons non exclusives:
 
 En fournissant les variables d'environnement suivantes :
 
-**`PG_DSN`** (obligatoire)
+**`AN4_PG_DSN`** (obligatoire)
 > Le DSN de la base de données PostgreSQL à laquelle se connecter, conforme à la spécification de la
 > section [Connection URIs](https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-CONNSTRING)
 > de la documentation PostgreSQL.
 >
-> Exemple : `PG_DSN=postgresql://dupont:secret@dbserver.domain.fr:5432/database_name`
+> Exemple : `AN4_PG_DSN=postgresql://dupont:secret@dbserver.domain.fr:5432/database_name`
 
-**`UVICORN_HOST`**, **`UVICORN_PORT`**, **`UVICORN_LOG_LEVEL`** (facultatif)
+**`AN4_UVICORN_HOST`**, **`AN4_UVICORN_PORT`**, **`AN4_UVICORN_LOG_LEVEL`** (facultatif)
 > Les paramètres d'initialisation du serveur de développement **Uvicorn** intégré. Voir la
 > [documentation Uvicorn](https://www.uvicorn.org/settings/) En cas d'absence de ces variables
 > d'environnement, les valeurs par défaut respectives suivantes leur seront affectées: `localhost`,
@@ -111,28 +111,28 @@ En fournissant les variables d'environnement suivantes :
 > Exemples : `HTTP_PROXY=http://mon.proxy.com:3218`, `HTTPS_PROXY=http://mon.proxy.com:3218`,
 > `NO_PROXY=localhost,127.0.0.1,*.domaine-prive.fr`.
 
-**`ANDI_LOG_FILE`** (facultatif)
+**`AN4_LOG_FILE`** (facultatif)
 > Si vous utilisez l'option de logging dans un fichier (le logging est effectué par défaut dans la
 > console), ce fichier sera utilisé. Il faut bien entendu fournir un chemin absolu vers un fichier
 > (existant ou non) dont le répertoire parent existe et autorise l'écriture à l'utilisateur
 > exécutant l'application.
 >
-> Exemple : `ANDI_LOG_FILE=/var/log/andi/andi.log`
+> Exemple : `AN4_LOG_FILE=/var/log/andi/andi.log`
 
-**`ANDI_CONFIG_FILE`** (facultatif)
+**`AN4_CONFIG_FILE`** (facultatif)
 > Comme décrit plus haut, l'ensemble des options peuvent être fournies à travers un fichier de
 > configuration. Le cas échéant, vous devez fournir le chemin relatif ou absolu de ce fichier dans
 > cette variable d'environnement.
 >
-> Exemple : `ANDI_CONFIG_FILE=/home/moi/etc/andicustom.py`
+> Exemple : `AN4_CONFIG_FILE=/home/moi/etc/andicustom.py`
 
-**`NO_ASYNCPG`** (pour développeurs seulement)
+**`AN4_NO_DB_CONNECTION`** (pour développeurs seulement)
 > Si un développeur veut tester une fonctionnalité ne nécessitant pas de base de données PostgreSQL
 > ou ne disposant pas d'une telle base de données, il est possible de placer cette variable
 > d'environnement. Notez que le cas échéant, l'absence éventuelle de la variable d'environnement
-> `PG_DSN` sera ignorée.
+> `AN4_PG_DSN` sera ignorée.
 >
-> Exemple : `NO_ASYNCPG=true`
+> Exemple : `AN4_NO_DB_CONNECTION=true`
 
 Pour vous faciliter les choses, vous pouvez exposer ces variables d'environnement dans un fichier
 **`.env`** figurant dans le répertoire depuis lequel le processus serveur est lancé, ou dans un de
@@ -166,16 +166,16 @@ La façon la plus simple de procéder consiste à :
   ````
 
 - inviter `andi-api` à utiliser ce fichier de configuration en exposant la variable d'environnement
-  `ANDI_CONFIG_FILE` contenant le chemin absolu d'accès à ce fichier de configuration. Ceci peut
+  `AN4_CONFIG_FILE` contenant le chemin absolu d'accès à ce fichier de configuration. Ceci peut
   bien entendu se faire en modifiant le fichier `.env`. Vous pouvez également utiliser explicitement
-  ce fichier de configuration  sans l'exposer `ANDI_CONFIG_FILE`  en exécutant la commande
+  ce fichier de configuration  sans l'exposer `AN4_CONFIG_FILE`  en exécutant la commande
   `andi-api` avec l'option `-c` ou `--config-file`.
 
   ```console
   andi-api --config-file $HOME/etc/custom_andi_config.py
   ````
 
-  Notez que dans ce dernier cas, l'éventuelle variable d'environnement `ANDI_CONFIG_FILE` sera
+  Notez que dans ce dernier cas, l'éventuelle variable d'environnement `AN4_CONFIG_FILE` sera
   ignorée.
 
 > **⚠️ Configuration en Python ! WTF ?**

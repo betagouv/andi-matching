@@ -13,7 +13,7 @@ DEBUG = False
 # Voir la fonction asyncpg.pool.create_pool ici :
 # https://magicstack.github.io/asyncpg/current/api/index.html#asyncpg.pool.create_pool
 PG_CONNECTIONS_POOL = {
-    "dsn": os.getenv("PG_DSN", "postgres://user:pass@localhost:5432/db"),
+    "dsn": os.getenv("AN4_PG_DSN", "postgres://user:pass@localhost:5432/db"),
     "min_size": 4,
     "max_size": 20
 }
@@ -23,9 +23,9 @@ PG_CONNECTIONS_POOL = {
 # https://www.uvicorn.org/settings/
 _defautl_log_level = "debug" if DEBUG else "info"
 UVICORN_OPTIONS = {
-    "host": os.getenv("UVICORN_HOST", "localhost"),
-    "port": int(os.getenv("UVICORN_PORT", "5000")),
-    "log_level": os.getenv("UVICORN_LOG_LEVEL", _defautl_log_level),
+    "host": os.getenv("AN4_UVICORN_HOST", "localhost"),
+    "port": int(os.getenv("AN4_UVICORN_PORT", "5000")),
+    "log_level": os.getenv("AN4_UVICORN_LOG_LEVEL", _defautl_log_level),
 }
 
 # Paramètres d'initialisation de l'application FastAPI
@@ -78,7 +78,7 @@ LOGGING = {
         "file": {
             "level": _defautl_log_level.upper(),
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.getenv("ANDI_LOG_FILE", "andi.log"),
+            "filename": os.getenv("AN4_LOG_FILE", "andi.log"),
             "maxBytes": 1024 ** 2,
             "backupCount": 4,
             "formatter": "standard"

@@ -58,7 +58,7 @@ jobs:
       --add-host=database:172.17.0.1
       --ip 172.17.0.6
       -e PROXY_PREFIX=/api
-      -e PG_DSN=$PG_DSN
+      -e AN4_PG_DSN=$PG_DSN
       -e HOST=$PG_HOST
       -e PORT=$PORT
       -e LOG_LEVEL=info

@@ -15,7 +15,7 @@ pylint-fail-under:
 	find . -name "*.py" -not -path '*/\.*' -exec pylint-fail-under --fail_under 9.5 --rcfile=.pylintrc '{}' +
 
 behave:
-	export NO_ASYNCPG=true && behave tests/behave
+	export AN4_NO_DB_CONNECTION=true && behave tests/behave
 
 behave-debug:
 	behave tests/behave --logging-level=DEBUG --no-logcapture

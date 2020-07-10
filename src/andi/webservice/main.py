@@ -45,12 +45,12 @@ def create_asgi_app() -> FastAPI:
 
     @app.on_event("startup")
     async def startup_event():
-        # Do not initiate DB Pool when testing (NO_ASYNCPG is a test-environment specific variable)
+        # Do not initiate DB Pool when testing (AN4_NO_DB_CONNECTION is a test-environment specific variable)
         async def pool_factory():
             pool = await asyncpg.create_pool(**config.PG_CONNECTIONS_POOL)
             return pool
 
-        if os.getenv('NO_ASYNCPG', 'false') == 'false':
+        if os.getenv('AN4_NO_DB_CONNECTION', 'false') == 'false':
             await dbpool.init(pool_factory)
 
     for router in all_routers:

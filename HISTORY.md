@@ -1,7 +1,9 @@
 ## Historique des versions
 
-### 1.7.0 -
+### 1.7.0.dev1
 
+- Préfixage des variables d'environnement spécifiques avec "AN4_"
+- Fichier .env modèle ".env.example"
 - Configurable par fichier de configuration
 - Support des fichiers .env (via python-dotenv)
 - Refactoring selon les recommandations FastAPI
