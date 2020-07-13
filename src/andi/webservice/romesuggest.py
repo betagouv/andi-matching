@@ -29,7 +29,7 @@ from whoosh.query import FuzzyTerm
 from whoosh.support.charset import accent_map
 
 from .library import words_get
-from .settings import config
+from . import settings
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +46,16 @@ def __getattr__(name: str) -> t.Any:
     global _suggest_state
     if name == "SUGGEST_STATE":
         if _suggest_state is None:
-            _suggest_state = init_state(force=config.REBUILD_SUGGEST_STATE)
+            _suggest_state = init_state(force=settings.config.ROME_SUGGEST_REBUILD)
         return _suggest_state
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def init_state(force=False):
-    idx = build_name('index_dir')
+    index_dir = settings.config.ROME_SUGGEST_INDEX_DIR
 
-    if check_table(idx) and not force:
-        logger.info('ROME Suggest database found, rebuild not forced: proceeding')
-        return get_index(idx)
+    if check_table(index_dir) and not force:
+        return open_dir(index_dir)
 
     logger.info('Compiling dataframe references')
     referentiels_dir = pathlib.Path(__file__).resolve().parent / "referentiels"
@@ -64,14 +63,14 @@ def init_state(force=False):
     rome_labels = pd.read_csv(referentiels_dir / "rome_lbb.csv", sep=',', encoding="utf-8")
     rome_labels.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
     rome_labels['source'] = 'rome'
-    logging.info(f"Obtained {len(rome_labels)} ROME labels")
+    logger.info(f"Obtained {len(rome_labels)} ROME labels")
 
     # OGR
     ogr_labels = pd.read_csv(referentiels_dir / "ogr_lbb.csv", sep=',', encoding="utf-8")
     ogr_labels.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
     ogr_labels['source'] = 'ogr'
     ogr_labels['slug'] = ogr_labels['label'].apply(lambda x: slugify(x))
-    logging.info(f"Obtained {len(ogr_labels)} OGR labels")
+    logger.info(f"Obtained {len(ogr_labels)} OGR labels")
 
     # ONISEP
     onisep_labels = pd.read_csv(referentiels_dir / "metiers_onisep.csv", sep=',', encoding="utf-8")
@@ -81,7 +80,7 @@ def init_state(force=False):
         'rome', 'rome_label', 'rome_url']
     onisep_labels['source'] = 'onisep'
     onisep_labels['slug'] = onisep_labels['label'].apply(lambda x: slugify(x))
-    logging.info(f"Obtained {len(onisep_labels)} ONISEP labels")
+    logger.info(f"Obtained {len(onisep_labels)} ONISEP labels")
 
     # Préparation et écriture des données
     rome_prep = rome_labels[['rome', 'label', 'source', 'slug']].copy()
@@ -96,22 +95,25 @@ def init_state(force=False):
     onisep_prep['label'] = onisep_prep['label'].str.lower()
     onisep_prep = onisep_prep.drop_duplicates(subset=['slug', 'rome'])
 
-    create_table(idx, overwrite=True)
-    write_dataframe(idx, rome_prep)
-    write_dataframe(idx, ogr_prep[ogr_prep.rome.notnull()])
-    write_dataframe(idx, onisep_prep[onisep_prep.rome.notnull()])
+    create_table(index_dir, overwrite=True)
+    write_dataframe(index_dir, rome_prep)
+    write_dataframe(index_dir, ogr_prep[ogr_prep.rome.notnull()])
+    write_dataframe(index_dir, onisep_prep[onisep_prep.rome.notnull()])
     logging.info('Suggestion index tables written')
-    return get_index(idx)
+    return open_dir(index_dir)
 
 
-def build_name(raw_name):
-    return re.sub(r'[^A-Za-z0-9]+', '', raw_name)
+def check_table(index_dir: t.Union[str, pathlib.Path]) -> bool:
+    """
+    Vérifie l'existence des fichiers d'index Whoosh
+    Args:
+        index_dir: Directory supposée contenir l'index
 
-
-def check_table(idx):
-    if os.path.exists(idx) and exists_in(idx):
-        return True
-    return False
+    Returns:
+        True si l'index Whoosh existe
+    """
+    index_dir = str(index_dir)
+    return os.path.exists(index_dir) and exists_in(index_dir)
 
 
 def create_table(name, *, overwrite=False):
@@ -159,13 +161,9 @@ def write_dataframe(idx_name, df):
         raise RuntimeError('Failed writing')
 
 
-def get_index(idx_name):
-    return open_dir(idx_name)
-
-
-class FuzzyConfig(FuzzyTerm):
+class CustomFuzzyTerm(FuzzyTerm):
     def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=3, constantscore=True):
-        super(FuzzyConfig, self).__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
+        super(CustomFuzzyTerm, self).__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
 
 
 def match(query_str, idx, limit=40):
@@ -191,7 +189,7 @@ def match(query_str, idx, limit=40):
         results.upgrade_and_extend(results_partial)
 
         # Fuzzy search
-        parser = QueryParser('label', idx.schema, termclass=FuzzyConfig)
+        parser = QueryParser('label', idx.schema, termclass=CustomFuzzyTerm)
         parser.add_plugin(FuzzyTermPlugin())
 
         shortword = re.compile(r'\W*\b\w{1,3}\b')

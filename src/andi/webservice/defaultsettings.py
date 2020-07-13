@@ -1,5 +1,5 @@
 """
-Configuration par défaut de l"application
+Configuration par défaut de l'application
 
 Note:
     N'importez pas directement depuis ce module.
@@ -50,12 +50,15 @@ TESTERS_IP_ADDRESSES = {
 # Un nombre entier pour limiter les résultats de /match
 MATCHING_QUERY_LIMIT = None
 
+# Directory de stockage de l'index Whoosh des suggestions ROME
+ROME_SUGGEST_INDEX_DIR = os.getenv("AN4_ROME_SUGGEST_INDEX_DIR", "./rome-suggest-index")
+
 # Limite de résultats retournés par le endpoint /rome_suggest
 ROME_SUGGEST_LIMIT = 15
 
-# Force la reconstruction de l'index des suggestions ROME
+# Force la reconstruction de l'index des suggestions ROME à chaque
 # Note: cet index est quand même reconstruit s'il n'existe pas.
-REBUILD_SUGGEST_STATE = False
+ROME_SUGGEST_REBUILD = False
 
 # Configuration générale de logging
 # voir la fonction mogging.config.dictconfig ici :

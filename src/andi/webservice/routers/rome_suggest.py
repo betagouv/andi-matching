@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from pydantic.types import PositiveInt
 
 from ..hardconfig import API_VERSION
-from ..lib_rome_suggest_v2 import SUGGEST_STATE, match as rome_suggest
+from ..romesuggest import SUGGEST_STATE, match as rome_suggest
 from ..library import get_trace_obj, utc_now
 from ..settings import config
 

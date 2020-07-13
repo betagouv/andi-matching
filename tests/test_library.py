@@ -40,11 +40,13 @@ Expected geo api output:
 """
 import json
 import pathlib
+import pandas as pd
+import pytest
 
 import andi.webservice
 import andi.webservice.library as library
-import pandas as pd
-import pytest
+
+from andi.webservice.schemas.input import DistanceCriterion, RomeCodesCriterion
 
 
 @pytest.mark.asyncio
@@ -57,7 +59,7 @@ async def test_string_query():
 @pytest.mark.asyncio
 async def test_get_codes():
     out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
-    lat, lon = library.get_codes(out)
+    lat, lon = library.get_coordinates(out)
     assert lat == 48.849392
     assert lon == 2.331544
 
@@ -93,3 +95,35 @@ def test_get_rome_suggest():
         if res.get('id') == 'K2401':
             found = True
     assert found
+
+
+def test_get_parameters():
+    criteria = [
+        RomeCodesCriterion.parse_obj({
+            "priority": 5,
+            "name": "rome_codes",
+            "rome_list": [
+                {
+                    "id": "A1202",
+                    "include": True,
+                    "exclude": False
+                },
+                {
+                    "id": "A1111",
+                    "include": False,
+                    "exclude": False
+                }
+
+            ],
+            "exclude_naf": []
+        }),
+        DistanceCriterion.parse_obj({
+            "priority": 2,
+            "name": "distance",
+            "distance_km": 15
+        })
+    ]
+    result = library.get_parameters(criteria)
+    assert result == {'includes': [], 'excludes': [], 'sizes': ['pme'],
+                      'multipliers': {'fg': 2, 'fn': 5, 'ft': 2, 'fw': 4, 'fc': 3}, 'romes': ['A1202'],
+                      'max_distance': 15}

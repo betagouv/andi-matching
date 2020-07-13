@@ -65,16 +65,24 @@ fournir ses résultats, utilisant les services de l'outil
 
 Les fichiers index sont des fichiers binaires compilés depuis des fichiers sources en CSV fournis
 dans la distribution `andi-matching`. Cette compilation s'effectue automatiquement en cas d'absence
-de ces fichiers d'index dans le répertoire `indexdir/` du répertoire courant (cwd) lors du lancement
-de l'application `andi-api`. En cas d'absence de ce répertoire, le lancement du serveur est **pénalisé
-d'environ une dizaine de secondes**, le temps de construire ce répertoire et son contenu.
+de ces fichiers d'index dans le répertoire par défaut `rome-index-suggest/` du répertoire courant
+(cwd) lors du lancement de l'application `andi-api`. En cas d'absence de ce répertoire, le lancement
+du serveur est **retardé d'environ une dizaine de secondes**, le temps de construire ce répertoire
+et son contenu.
 
 En conséquence, il est impératif de lancer la commande `andi-api` depuis un répertoire où
 l'utilisateur propriétaire du processus exécutant l'application **dispose des droits d'écriture**.
 
+> **NOTE**
+>
+> Le chemin de ce répertoire peut être personnalisé comme indiqué dans le paragraphe
+> **Configuration** ci-après.
+
+
 > **☝️ TODO**
 >
-> Une version future d'`andi-matching` construira ces fichier d'index "définitivement" lors de l'installation.
+> Une version future d'`andi-matching` construira ces fichier d'index "définitivement" lors de
+> l'installation.
 
 ### Configuration
 
@@ -85,7 +93,7 @@ peut se faire de deux façons non exclusives:
 * L'ensemble des options, incluant celles définies par les variables d'environnement peuvent être
   fournies par un **fichier de configuration**.
 
-En fournissant les variables d'environnement suivantes :
+En fournissant les **variables d'environnement** suivantes :
 
 **`AN4_PG_DSN`** (obligatoire)
 > Le DSN de la base de données PostgreSQL à laquelle se connecter, conforme à la spécification de la
@@ -110,6 +118,16 @@ En fournissant les variables d'environnement suivantes :
 >
 > Exemples : `HTTP_PROXY=http://mon.proxy.com:3218`, `HTTPS_PROXY=http://mon.proxy.com:3218`,
 > `NO_PROXY=localhost,127.0.0.1,*.domaine-prive.fr`.
+
+**`AN4_ROME_SUGGEST_INDEX_DIR`** (facultatif)
+
+> Comme expliqué ci-avant, `andi-api` nécessite un index de recherche pour les suggestions de code
+> ROME, index qui est construit de façon persistante dans un répertoire, créé pour l'occasion à un
+> emplacement dans lequel l'utilisateur propriétaire du processus serveur dispose des droits
+> d'écriture. Cette variable d'environnement permet de désigner un répertoire dans lequel cet index
+> sera enregistré. Par défaut, ce répertoire sera `./rome-suggest-index/`.
+>
+> Exemple : `AN4_ROME_SUGGEST_INDEX_DIR=/var/run/an4-rome-suggest-index`.
 
 **`AN4_LOG_FILE`** (facultatif)
 > Si vous utilisez l'option de logging dans un fichier (le logging est effectué par défaut dans la
@@ -139,16 +157,24 @@ Pour vous faciliter les choses, vous pouvez exposer ces variables d'environnemen
 ses répertoires parents. Reportez-vous à [cette
 documentation](https://pypi.org/project/python-dotenv/) pour la syntaxe des fichiers `.env`.
 
+Notez que les variables d'environnement préalablement existantes ne seront pas modifiées par
+l'utilisation du fichier `.env`. Par exemple, il est inutile de redéfinir la variable `$HOME` dans
+le fichier `.env`. Ça ne fonctionnera pas.
+
+Le répertoire racine du dépôt contient un fichier `.env.example` qu'il vous suffira de copier dans
+un fichier `.env` à un emplacement pertinent puis adapter à vos besoins.
+
 L'autre façon complémentaire de personnaliser le fonctionnement de ce logiciel consiste à fournir un
-**fichier de configuration personnalisé**. Cette façon de procéder permet en outre d'effectuer certaines
-personnalisations hors de portée des simples variables d'environnement, comme le logging.
+**fichier de configuration personnalisé**. Cette façon de procéder permet en outre d'effectuer
+certaines personnalisations hors de portée des simples variables d'environnement, comme le logging,
+ou des options de pool de connexion PostgreSQL différentes.
 
 La façon la plus simple de procéder consiste à :
 
 - obtenir une **copie du fichier de configuration par défaut** dans un répertoire quelconque,
 
   ```console
-  andi-api --dump-config > $HOME/etc/custom_andi_config.py  # Choix arbitraire
+  andi-api --dump-default-config > $HOME/etc/custom_andi_config.py  # Choix arbitraire
   ```
 
 - modifier cette copie pour ne conserver et modifier que les options que vous voulez modifier, avec
@@ -240,14 +266,12 @@ TODO : fournir la définition des colonnes des fichiers CSV et Google sheet
 
 Le déploiement de l'API Matching et de la librairie est détaillée dans le `DockerFile`. Celui-ci se
 contente de définir les variables d'environnement requises, d'installer l'environnement Python, de
-copier les fichiers nécesaires et de lancer l'API, qui sera fournie sur le port 9000 par défaut
+copier les fichiers nécessaires et de lancer l'API, qui sera fournie sur le port 9000 par défaut
 (voir variables d'environnent du CI).
 
 Le déploiement est assuré par Travis, et est détaillé dans le fichier `.travis.yml`.
 
 # Socle technique
-
-## API Matching
 
 - Python 3.7+
 - framework [FastAPI](https://github.com/tiangolo/fastapi) implémentant
@@ -255,13 +279,29 @@ Le déploiement est assuré par Travis, et est détaillé dans le fichier `.trav
   intégrant [Starlette](https://github.com/encode/starlette) (framework ASGI, support WebSocket,
   GraphQL, CORS, ...) et [pydantic](https://pydantic-docs.helpmanual.io/) (validation de données)
 - documentation API auto-générée (via OpenAPi - ex-swagger)
+- PostgreSQL (via asyncpg)
+- Whoosh
 
-## Outil Matching
+## Cycles de développement
 
-- Requête SQL utilisant la méthode [RFM](https://en.wikipedia.org/wiki/RFM_(customer_value\)) qui
-  génère des ensembles de résultat, en fonction du score différencié sur les critères employés
-- Python 3.7+
+Les cycles de développement et de maintenance de ce logiciel seront effectués selon les règles du
+workflow [Gitflow](https://www.atlassian.com/fr/git/tutorials/comparing-workflows/gitflow-workflow).
 
+Quelques recommandations supplémentaires :
+
+- Avant de clore une branche "feature/xxx":
+  - Squashez les commits effectués sur la branche pour ne conserver que les plus significatifs
+    (éviter de bruiter le log Git)
+  - Vérifiez que les tests unitaires ne relèvent aucune erreur
+- Après une fusion dans la branche "develop":
+  - Vérifiez que les tests unitaires ne relèvent aucune erreur
+  - Vérifiez que la version dans "VERSION.txt" soit la prochaine version planifiée et se termine par
+    ".dev1". Exemple : "2.6.2.dev1". Corrigez et commitez directement dans la branche "develop" le
+    cas échéant.
+- Lors d'une nouvelle version (dans la branche "master")
+  - Corriger la version figurant dans "VERSION.txt" si ce n'est déjà fait.
+  - Ajouter dans la branche "master" un tag Git ayant la même valeur que le contenu que celui de
+    "VERSION.txt"
 
 ## Tests et validation
 

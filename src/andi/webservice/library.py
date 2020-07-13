@@ -1,6 +1,7 @@
 """
 Utilitaires divers et inclassables de l'appli
 """
+from __future__ import annotations
 
 import datetime
 import functools
@@ -19,7 +20,8 @@ import unidecode
 from fuzzywuzzy import fuzz
 from pydantic import BaseModel
 
-from . import criterion_parser
+if t.TYPE_CHECKING:
+    from .schemas.input import DistanceCriterion, RomeCodesCriterion
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,8 @@ async def geo_code_query(query):
             return await response.json()
 
 
-def get_codes(data):
+# TODO: move to schemas/input
+def get_coordinates(data):
     # geo-coding standard does not respect lat / lon order
     lon, lat = data['features'][0]['geometry']['coordinates']
     return lat, lon
@@ -60,15 +63,32 @@ DEFAULT_MATCHING_PARAMS = {
 }
 
 
-def parse_param(accumulator, criterion):
-    res = getattr(criterion_parser, criterion.name)(criterion, accumulator)
+class CriterionParser:
+    @staticmethod
+    def distance(criterion: DistanceCriterion, acc):
+        acc['max_distance'] = criterion.distance_km
+        acc['multipliers']['fg'] = criterion.priority
+        return acc
+
+    @staticmethod
+    def rome_codes(criterion: RomeCodesCriterion, acc):
+        # FIXME add rome include / exclude rule
+        rome_codes= [rome.id for rome in criterion.rome_list if rome.include]
+        acc['romes'] = rome_codes
+        acc['multipliers']['fn'] = criterion.priority
+        return acc
+
+
+def parse_param(accumulator, criterion: t.Union[DistanceCriterion, RomeCodesCriterion]):
+    res = getattr(CriterionParser, criterion.name)(criterion, accumulator)
     return res
 
 
-def get_parameters(criteria):
+def get_parameters(criteria: t.List[t.Union[DistanceCriterion, RomeCodesCriterion]]):
     return functools.reduce(parse_param, criteria, DEFAULT_MATCHING_PARAMS)
 
 
+# FIXME: Obsolète
 async def rome_list_query(query):
     """
     DEPRECATED
@@ -105,6 +125,7 @@ def get_dataframes_v1():
     return (rome_df, ogr_df)
 
 
+# FIXME: Obsolète
 def score_build(query, match):
     """
     Return matching score used to order search results
@@ -114,6 +135,7 @@ def score_build(query, match):
     return round(ratio / 20, 1)
 
 
+# FIXME: Obsolète
 def normalize(txt):
     """
     Generic standaridzed text normalizing function
@@ -136,6 +158,7 @@ def normalize(txt):
     return txt
 
 
+# FIXME: Obsolète
 def words_get(raw_query):
     if not raw_query:
         return []
@@ -143,6 +166,7 @@ def words_get(raw_query):
     return query.split()
 
 
+# FIXME: Obsolète
 def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     if ogr_label:
         label = f"{rome_label} ({ogr_label}, ...)"
@@ -158,6 +182,7 @@ def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
     }
 
 
+# FIXME: Obsolète, plus utilisé
 def rome_suggest_v1(query, state):
     rome_df, ogr_df = state
     results = {}
@@ -227,7 +252,7 @@ def utc_now() -> datetime.datetime:
     return datetime.datetime.now(tz=pytz.utc)
 
 
-def is_valid_uuid(val):
+def is_valid_uuid(val: t.AnyStr):
     try:
         uuid.UUID(str(val))
         return True

@@ -9,7 +9,7 @@ from typing import List, Union, Tuple
 from pydantic import BaseModel, Field, Json, PositiveInt
 
 from .common import MetaModel, get_schema_example
-from ..library import geo_code_query, get_codes
+from ..library import geo_code_query, get_coordinates
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class Address(BaseModel):
         else:
             logger.error(f"Unknown address type '{self.type}'.")
             raise
-        lat, lon = get_codes(geo_data)
+        lat, lon = get_coordinates(geo_data)
         logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
         return lat, lon
 
@@ -55,7 +55,7 @@ class Criterion(BaseModel):
     priority: PositiveInt = Field(..., description="Priority (1 to 5) of the criterion")
 
 
-class Criterion_Distance(Criterion):
+class DistanceCriterion(Criterion):
     name: str = Field('distance', const=True, description="Name of criteria")
     distance_km: int
 
@@ -84,7 +84,7 @@ class RomeCode(BaseModel):
         }
 
 
-class Criterion_RomeCodes(Criterion):
+class RomeCodesCriterion(Criterion):
     name: str = Field('rome_codes', const=True, description="Name of criteria")
     rome_list: List[RomeCode] = Field(..., description="List of rome codes")
     exclude_naf: list = Field([], description="List of naf codes to exclude")
@@ -106,8 +106,8 @@ class Model(MetaModel):
     """
     address: Address = Field(..., description="query base address")
     criteria: List[Union[
-        Criterion_Distance,
-        Criterion_RomeCodes,
+        DistanceCriterion,
+        RomeCodesCriterion,
     ]] = Field([], description="List of criteria")
 
     class Config:
@@ -119,10 +119,10 @@ class Model(MetaModel):
                 },
                 'criteria': [
                     {
-                        **get_schema_example(Criterion_Distance)
+                        **get_schema_example(DistanceCriterion)
                     },
                     {
-                        **get_schema_example(Criterion_RomeCodes)
+                        **get_schema_example(RomeCodesCriterion)
                     }
                 ]
             }
