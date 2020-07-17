@@ -12,7 +12,7 @@ __pycache__
 *.log
 deploy_ed25519
 dist/
-indexdir/
+rome-suggest-index/
 output/
 .env
 .vscode/settings.json
