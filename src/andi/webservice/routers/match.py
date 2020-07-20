@@ -4,7 +4,6 @@
 import json
 import logging
 
-import yaml
 from andi.matching import lib_match
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
@@ -12,8 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from .. import dbpool
 from ..hardconfig import API_VERSION
 from ..library import get_trace_obj, get_parameters, utc_now, is_valid_uuid
-from ..schemas.input import Model as QueryModel
-from ..schemas.output import Model as ResponseModel
+from ..schemas.match import QueryModel, ResponseModel
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -21,7 +19,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/match", response_model=ResponseModel)
+@router.post("/match", response_model=ResponseModel,
+             summary="Recherche de sociétés",
+             description="Recherche de sociétés à proximité pour une immersion.",
+             tags=["public"])
 async def matching(query: QueryModel, db=Depends(dbpool.get)):
     """
     Matching endpoint:
@@ -35,10 +36,10 @@ async def matching(query: QueryModel, db=Depends(dbpool.get)):
     raw_data = await lib_match.run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
                                                  **params)
     logger.debug('raw responses:')
-    logger.debug(yaml.dump(raw_data[:4]))
+    logger.debug(json.dumps(raw_data[:4], indent=2))
     data = await make_data(raw_data)
     logger.debug('clean responses:')
-    logger.debug(yaml.dump(data[:4]))
+    logger.debug(json.dumps(data[:4], indent=2))
 
     try:
         await match_track(query, params, lat, lon, db)

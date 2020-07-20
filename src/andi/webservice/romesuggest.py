@@ -83,17 +83,25 @@ def init_state(force=False):
     logger.info(f"Obtained {len(onisep_labels)} ONISEP labels")
 
     # Préparation et écriture des données
-    rome_prep = rome_labels[['rome', 'label', 'source', 'slug']].copy()
-    rome_prep['label'] = rome_prep['label'].str.lower()
-    rome_prep = rome_prep.drop_duplicates(subset=['slug', 'rome'])
+    # rome_prep = rome_labels[['rome', 'label', 'source', 'slug']].copy()
+    # rome_prep['label'] = rome_prep['label'].str.lower()
+    # rome_prep = rome_prep.drop_duplicates(subset=['slug', 'rome'])
+    #
+    # ogr_prep = ogr_labels[['rome', 'label', 'source', 'slug']].copy()
+    # ogr_prep['label'] = ogr_prep['label'].str.lower()
+    # ogr_prep = ogr_prep.drop_duplicates(subset=['slug', 'rome'])
+    #
+    # onisep_prep = onisep_labels[['rome', 'label', 'source', 'slug']].copy()
+    # onisep_prep['label'] = onisep_prep['label'].str.lower()
+    # onisep_prep = onisep_prep.drop_duplicates(subset=['slug', 'rome'])
+    def prepared(series: pd.Series) -> pd.Series:
+        out = series[["rome", "label", "source", "slug"]].copy()
+        out["label"] = series["label"].str.lower()
+        return out.drop_duplicates(subset=["slug", "rome"])
 
-    ogr_prep = ogr_labels[['rome', 'label', 'source', 'slug']].copy()
-    ogr_prep['label'] = ogr_prep['label'].str.lower()
-    ogr_prep = ogr_prep.drop_duplicates(subset=['slug', 'rome'])
-
-    onisep_prep = onisep_labels[['rome', 'label', 'source', 'slug']].copy()
-    onisep_prep['label'] = onisep_prep['label'].str.lower()
-    onisep_prep = onisep_prep.drop_duplicates(subset=['slug', 'rome'])
+    rome_prep = prepared(rome_labels)
+    ogr_prep = prepared(ogr_labels)
+    onisep_prep = prepared(onisep_labels)
 
     create_table(index_dir, overwrite=True)
     write_dataframe(index_dir, rome_prep)
@@ -116,7 +124,7 @@ def check_table(index_dir: t.Union[str, pathlib.Path]) -> bool:
     return os.path.exists(index_dir) and exists_in(index_dir)
 
 
-def create_table(name, *, overwrite=False):
+def create_table(index_dir, *, overwrite=False):
     analyzer = StandardAnalyzer() | CharsetFilter(accent_map)
     schema = Schema(
         label=TEXT(stored=True, analyzer=analyzer, lang='fr'),
@@ -125,20 +133,20 @@ def create_table(name, *, overwrite=False):
         slug=STORED
     )
 
-    if not os.path.exists(name):
-        os.mkdir(name)
-    elif exists_in(name):
+    if not os.path.exists(index_dir):
+        os.mkdir(index_dir)
+    elif exists_in(index_dir):
         if not overwrite:
-            logger.critical('An index already exists in %s; overwrite flag not set; abandonning', name)
+            logger.critical('An index already exists in %s; overwrite flag not set; abandonning', index_dir)
             raise RuntimeError('Index already exists')
-        logger.warning('Index already found, deleting %s to start anew', name)
-        shutil.rmtree(name, ignore_errors=True, onerror=None)
+        logger.warning('Index already found, deleting %s to start anew', index_dir)
+        shutil.rmtree(index_dir, ignore_errors=True, onerror=None)
 
-        os.mkdir(name)
+        os.mkdir(index_dir)
 
-    logger.info('Whoosh index %s ready for use', name)
-    create_in(name, schema)
-    return name
+    logger.info('Whoosh index %s ready for use', index_dir)
+    create_in(index_dir, schema)
+    return index_dir
 
 
 # FIXME: Apparemment inutilisé
@@ -163,7 +171,7 @@ def write_dataframe(idx_name, df):
 
 class CustomFuzzyTerm(FuzzyTerm):
     def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=3, constantscore=True):
-        super(CustomFuzzyTerm, self).__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
+        super().__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
 
 
 def match(query_str, idx, limit=40):

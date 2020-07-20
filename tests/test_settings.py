@@ -17,6 +17,6 @@ def test_default_settings(caplog):
 
 def test_custom_settings(data_directory):
     settings._config = types.SimpleNamespace()
-    os.environ[CONFIG_FILE_ENNVAR] = str(data_directory / "testcustomconfig.py")
+    os.environ[CONFIG_FILE_ENNVAR] = str(data_directory / "customconfig.py")
     config = settings.config
     assert config.DEBUG

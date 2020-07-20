@@ -1,7 +1,16 @@
 ## Historique des versions
 
+### Futur - à planifier
+
+- Suppression de la commande `andi-matching` et de ses dépendances.
+- Placer le SQL et les méthodes / fonctions y accédant dans le logiciel `an4.andidb`.
+
 ### 1.7.0.dev1
 
+- La recherche de codes ROME / métiers est asynchrone (performances ++)
+- Suppression des tests Behave, remplacement par des pytests
+- Amélioration autodoc OpenAPI
+- Suppression des routes /entreprise et /track
 - Création de l'index persistant de recherche ROM dans un répertoire personnalisable.
 - Préfixage des variables d'environnement spécifiques avec "AN4_"
 - Fichier .env modèle ".env.example"

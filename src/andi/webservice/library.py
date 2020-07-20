@@ -3,6 +3,8 @@ Utilitaires divers et inclassables de l'appli
 """
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import datetime
 import functools
 import json
@@ -21,7 +23,9 @@ from fuzzywuzzy import fuzz
 from pydantic import BaseModel
 
 if t.TYPE_CHECKING:
-    from .schemas.input import DistanceCriterion, RomeCodesCriterion
+    from .schemas.match import DistanceCriterion, RomeCodesCriterion
+
+from .hardconfig import AWAITABLE_BLOCKING_POOL_MAX_THREADS
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +77,7 @@ class CriterionParser:
     @staticmethod
     def rome_codes(criterion: RomeCodesCriterion, acc):
         # FIXME add rome include / exclude rule
-        rome_codes= [rome.id for rome in criterion.rome_list if rome.include]
+        rome_codes = [rome.id for rome in criterion.rome_list if rome.include]
         acc['romes'] = rome_codes
         acc['multipliers']['fn'] = criterion.priority
         return acc
@@ -266,3 +270,35 @@ def get_trace_obj(query: BaseModel) -> t.Dict[str, t.Any]:
         '_session_id': query.session_id,
         '_trace': 'not_implemented_yet',
     }
+
+
+# Running a blocking callable inside a coroutine
+# ==============================================
+
+# Use the better suited pool (see doc of ``concurrent.future```)
+
+awaitable_blocking_pool = concurrent.futures.ThreadPoolExecutor(
+    max_workers=AWAITABLE_BLOCKING_POOL_MAX_THREADS
+)
+
+
+# awaitable_blocking_pool = concurrent.futures.ProcessPoolExecutor()
+# awaitable_blocking_pool = None  # Default asyncio pool
+
+
+async def awaitable_blocking(func: t.Callable, *args: t.Any, **kwargs: t.Any) -> t.Any:
+    """
+    Enable to "await" a blocking I/O callable from an asyncio coroutine
+
+    Args:
+        func: The regular blocking callable (function, method)
+        args: Positional arguments transmitted to ``func``
+        kwargs: Keyword arguments transmitted to ``func``
+
+    Returns:
+        Anything that's returned by ``func``
+    """
+    loop = asyncio.get_running_loop()
+    new_func = functools.partial(func, *args, **kwargs)
+    result = await loop.run_in_executor(awaitable_blocking_pool, new_func)
+    return result

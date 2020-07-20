@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from .common import MetaModel, get_schema_example
 
 
-class InputModel(MetaModel):
+class QueryModel(MetaModel):
     needle: str = Field(..., description="Search string")
 
     class Config:
@@ -49,12 +49,12 @@ class RomeSuggestion(BaseModel):
         }
 
 
-class Model(MetaModel):
+class ResponseModel(MetaModel):
     """
     Modèle des données sortantes de l'api suggestion code ROME
     Calqué sur l'API de La Bonne Boîte
     """
-    data: List[RomeSuggestion] = Field([], description="List of rome suggestions")
+    data: List[RomeSuggestion] = Field([], description="List of ROME suggestions")
 
     class Config:
         schema_extra = {

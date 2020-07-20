@@ -1,7 +1,7 @@
 """
 Routes et handlers de l'API
 """
-from . import root, entreprise, match, rome_suggest, track
+from . import root, match, rome_suggest
 
 # Tous les routers accessibles depuis de sous-package
-all_routers = (getattr(mod, "router") for mod in (root, entreprise, match, rome_suggest, track))
+all_routers = (getattr(mod, "router") for mod in (root, match, rome_suggest))

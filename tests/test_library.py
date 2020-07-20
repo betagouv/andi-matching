@@ -46,7 +46,7 @@ import pytest
 import andi.webservice
 import andi.webservice.library as library
 
-from andi.webservice.schemas.input import DistanceCriterion, RomeCodesCriterion
+from andi.webservice.schemas.match import DistanceCriterion, RomeCodesCriterion
 
 
 @pytest.mark.asyncio

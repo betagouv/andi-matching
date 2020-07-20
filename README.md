@@ -6,6 +6,10 @@
 l'immersion professionnelle des personnes en situation de handicap. **andi-matching** est le serveur
 backend motorisant cette application.
 
+------------
+[TOC]
+------------
+
 # Installation
 
 ## Dépendances
@@ -152,6 +156,19 @@ En fournissant les **variables d'environnement** suivantes :
 >
 > Exemple : `AN4_NO_DB_CONNECTION=true`
 
+Si leur absence n'est à priori pas conséquente sur le fonctionnement du service, vous pouvez noter
+que les logiciels sur lesquels il se base peuvent aussi être paramètrés par des variables
+d'environnement:
+
+- [Les variables d'environnement utilisées par
+  Python](https://docs.python.org/3/using/cmdline.html#environment-variables)
+- [Les variables d'environnement utilisées par Uvicorn](https://www.uvicorn.org/settings/)
+- [Les variables d'environnement utilisées par le client standard
+  PostgreSQL](https://www.postgresql.org/docs/11/libpq-envars.html)
+- [Les variables d'environnement utilisées par le client Python
+  PostgreSQL](https://magicstack.github.io/asyncpg/current/api/index.html)
+
+
 Pour vous faciliter les choses, vous pouvez exposer ces variables d'environnement dans un fichier
 **`.env`** figurant dans le répertoire depuis lequel le processus serveur est lancé, ou dans un de
 ses répertoires parents. Reportez-vous à [cette
@@ -262,7 +279,7 @@ andi-matching --config_file config.yaml run-drive --profile [PROFIL]
 TODO: fournir plus de détails sur ce que font les commandes.
 TODO : fournir la définition des colonnes des fichiers CSV et Google sheet
 
-# Déploiement via Travis / Docker (obsolète et non maintenu)
+# Déploiement via Travis / Docker (/!\ obsolète et non maintenu)
 
 Le déploiement de l'API Matching et de la librairie est détaillée dans le `DockerFile`. Celui-ci se
 contente de définir les variables d'environnement requises, d'installer l'environnement Python, de
@@ -354,3 +371,54 @@ tox -e [ py37 | py38 ]
 
 Le fichier `.travis.yml` détaille les procédures de test et de validation automatisées, ainsi que le
 _build_ et le déploiement.
+
+# FAQ
+
+Foire Aux Questions diverses auxquelles les réponses sont fournies au fil de l'eau, sans ordre autre
+que chronologique.
+
+## Comment produire un fichier Swagger de spécification de l'API ?
+
+Le framework FastAPI sur lequel l'application se base fournit les spécifications d'API au format
+OpenAPI 3.0.x à la date de rédaction de cette note. Les opérateurs de production de la CDC ont
+besoin de cette spécification à l'ancien format OpenAPI 2.0 (alias Swagger).
+
+L'outil de conversion [api-spec-converter](https://www.npmjs.com/package/api-spec-converter) permet ceci.
+
+Exemple d'utilisation :
+
+- lancez `andi-api` sur votre poste de développement. Nous supposons qu'il écoute le port 5000.
+  Adaptez selon le cas.
+- Lancez la commande (en une seule ligne) :
+```bash
+api-spec-converter --from openapi_3 --to swagger_2 http://localhost:5000/openapi.json > andi-swagger.json
+```
+
+## Comment faire accepter un mot de passe du DSN PostgreSQL avec des caractères spéciaux ?
+
+Rappel : le mot de passe de la base PostgreSQL peut être passé dans le DSN à travers la variable
+d'environnement `AN4_PG_DSN` comme vu plus haut dans les considérations relatives à la
+configuration. Il est possible que ce mot de passe inclue des caractères structurant dans une URL,
+comme le `#` ou le `%`.
+
+Par exemple : `AN4_PG_DSN=postgresql://dupont:xUty#5%ba@serveur.tld:4321/database`.
+
+Si vous laissez la variable d'environnement en l'état, le démarrage "plantera", la dernière ligne du
+(long) message d'erreur indiquera :
+
+```
+.../site-packages/asyncpg/connect_utils.py in _parse_hostlist(hostlist, port, unquote)
+
+ValueError: invalid literal for int() with base 10: 'xUty'
+```
+
+Eh oui ! La présence du `#` dans le mot de passe a faussé le parsing du DSN, comme le ferait le `%`
+si on inversait les deux caractères. Dans ce cas, il faut "URL encoder" le mot de passe, comme [il
+est expliqué ici](https://fr.wikipedia.org/wiki/Percent-encoding).
+
+Un outil d'encodage [tel que celui-ci](https://www.urlencoder.org/) permet donc d'encoder le mot de
+passe `xUty#5%ba` en `xUty%235%25ba` et obtenir le DSN à fournir, c'est-à-dire :
+
+````
+AN4_PG_DSN=postgresql://dupont:xUty%235%25ba@serveur.tld:4321/database
+```

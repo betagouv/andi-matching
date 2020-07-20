@@ -7,7 +7,7 @@ import asyncpg
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from . import settings, romesuggest, dbpool
+from . import settings, romesuggest, dbpool, __version__
 from .routers import all_routers
 
 
@@ -21,11 +21,16 @@ def create_asgi_app() -> FastAPI:
     # On bootstrape la config si nécessaire
     config = settings.config
 
-    # Juste pour bootstrapper l'index Wooosh
+    # Juste pour bootstrapper l'index Whoosh
     _ = romesuggest.SUGGEST_STATE
 
     # Construction et paramétrage de l'app ASGI
-    app = FastAPI(**config.FASTAPI_OPTIONS)
+    app = FastAPI(
+        title="ANDi API",
+        description="Documentation et tests des différents points d'accès de l'API ANDi.",
+        version=__version__,
+        **config.FASTAPI_OPTIONS)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
