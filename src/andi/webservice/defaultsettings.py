@@ -74,6 +74,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
+            "level": _defautl_log_level.upper(),
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
             "formatter": "standard"

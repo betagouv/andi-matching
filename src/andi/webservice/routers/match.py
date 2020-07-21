@@ -3,6 +3,7 @@
 """
 import json
 import logging
+import pprint
 
 from andi.matching import lib_match
 from fastapi import APIRouter, Depends
@@ -36,10 +37,10 @@ async def matching(query: QueryModel, db=Depends(dbpool.get)):
     raw_data = await lib_match.run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
                                                  **params)
     logger.debug('raw responses:')
-    logger.debug(json.dumps(raw_data[:4], indent=2))
+    logger.debug(pprint.saferepr(raw_data[:4]))
     data = await make_data(raw_data)
     logger.debug('clean responses:')
-    logger.debug(json.dumps(data[:4], indent=2))
+    logger.debug(pprint.saferepr(data[:4]))
 
     try:
         await match_track(query, params, lat, lon, db)

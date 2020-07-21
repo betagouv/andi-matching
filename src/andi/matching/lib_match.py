@@ -14,8 +14,6 @@ from . import sql as SQLLIB
 # from sql import MATCH_QUERY
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.getLevelName('DEBUG'))
-logger.addHandler(logging.StreamHandler())
 
 MAX_VALUE_GROUP = '5'
 
