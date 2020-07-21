@@ -105,6 +105,8 @@ En fournissant les **variables d'environnement** suivantes :
 > de la documentation PostgreSQL.
 >
 > Exemple : `AN4_PG_DSN=postgresql://dupont:secret@dbserver.domain.fr:5432/database_name`
+>
+> **/!\ Lisez la FAQ** à propos l'encodage des mots de passe incluant des caractères spéciaux.
 
 **`AN4_UVICORN_HOST`**, **`AN4_UVICORN_PORT`**, **`AN4_UVICORN_LOG_LEVEL`** (facultatif)
 > Les paramètres d'initialisation du serveur de développement **Uvicorn** intégré. Voir la
@@ -113,15 +115,6 @@ En fournissant les **variables d'environnement** suivantes :
 > `5000` et `INFO`. De plus ces variables d'environnement ne seront prises en compte que lors du
 > lancement du serveur de développement par la commande `andi-api`, et seront ignorées lors de
 > l'utilisation d'un serveur ASGI externe.
-
-**`HTTP_PROXY`**, **`HTTPS_PROXY`** et **`NO_PROXY`** (si nécessaire)
-> `andi-api` nécessite l'accès à des ressources Restful externes sur le Web fournies par des
-> services partenaires. Si l'accès à Internet nécessite la traversée d'un proxy HTTP(s), ces
-> variables d'environnement doivent être fournies. Renseignez-vous auprès de votre support réseau
-> pour ces variables d'environnement standard.
->
-> Exemples : `HTTP_PROXY=http://mon.proxy.com:3218`, `HTTPS_PROXY=http://mon.proxy.com:3218`,
-> `NO_PROXY=localhost,127.0.0.1,*.domaine-prive.fr`.
 
 **`AN4_ROME_SUGGEST_INDEX_DIR`** (facultatif)
 
@@ -156,9 +149,27 @@ En fournissant les **variables d'environnement** suivantes :
 >
 > Exemple : `AN4_NO_DB_CONNECTION=true`
 
-Si leur absence n'est à priori pas conséquente sur le fonctionnement du service, vous pouvez noter
-que les logiciels sur lesquels il se base peuvent aussi être paramètrés par des variables
-d'environnement:
+**`HTTP_PROXY`**, **`HTTPS_PROXY`** et **`NO_PROXY`** (si nécessaire)
+> `andi-api` nécessite l'accès à des ressources Restful externes sur le Web fournies par des
+> services partenaires. Si l'accès à Internet nécessite la traversée d'un proxy HTTP(s), ces
+> variables d'environnement doivent être fournies. Renseignez-vous auprès de votre support réseau
+> pour ces variables d'environnement standard.
+>
+> Exemples : `HTTP_PROXY=http://mon.proxy.com:3218`, `HTTPS_PROXY=http://mon.proxy.com:3218`,
+> `NO_PROXY=localhost,127.0.0.1,*.domaine-prive.fr`.
+
+**`SSL_CERT_FILE`** (obligatoire en environnement serveur CDC)
+> Les serveurs Linux installés pour le CDC sont installés avec un lot de certificats CA racine
+> personnalisé installé dans un répertoire non standard. Comme pour toutes les autres applications
+> qui nécessitent un accès HTTPs vers des ressources externes, il est nécessaire de placer dans
+> cette variable le chemin absolu du fichier contenant ces certificats. Ce fichier a pour extension
+> `.crt` ou `.pem` selon la sérialisation des certificats adoptée.
+>
+> Exemple : `SSL_CERT_FILE=/dn-serviceandi/ntiers/an4/ext/ssl/cacert.crt`
+
+**Autres variables d'environnement** : Si leur absence n'est à priori pas conséquente sur le
+fonctionnement du service, vous pouvez noter que les logiciels sur lesquels il se base peuvent aussi
+être paramètrés par des variables d'environnement:
 
 - [Les variables d'environnement utilisées par
   Python](https://docs.python.org/3/using/cmdline.html#environment-variables)
@@ -167,7 +178,6 @@ d'environnement:
   PostgreSQL](https://www.postgresql.org/docs/11/libpq-envars.html)
 - [Les variables d'environnement utilisées par le client Python
   PostgreSQL](https://magicstack.github.io/asyncpg/current/api/index.html)
-
 
 Pour vous faciliter les choses, vous pouvez exposer ces variables d'environnement dans un fichier
 **`.env`** figurant dans le répertoire depuis lequel le processus serveur est lancé, ou dans un de
@@ -419,6 +429,6 @@ est expliqué ici](https://fr.wikipedia.org/wiki/Percent-encoding).
 Un outil d'encodage [tel que celui-ci](https://www.urlencoder.org/) permet donc d'encoder le mot de
 passe `xUty#5%ba` en `xUty%235%25ba` et obtenir le DSN à fournir, c'est-à-dire :
 
-````
+```
 AN4_PG_DSN=postgresql://dupont:xUty%235%25ba@serveur.tld:4321/database
 ```
