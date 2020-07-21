@@ -11,9 +11,9 @@ from andi.webservice.asgi import app as real_app
 
 @pytest.fixture(scope="session", autouse=True)
 def session_setup_teardown():
-    # Setup
+    # Setup global
     yield
-    # Teardown
+    # Teardown global
 
 
 @pytest.fixture(scope="session")

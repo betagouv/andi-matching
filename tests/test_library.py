@@ -42,6 +42,7 @@ import json
 import pathlib
 import pandas as pd
 import pytest
+import sys
 
 import andi.webservice
 import andi.webservice.library as library
@@ -63,7 +64,7 @@ async def test_get_codes():
     assert lat == 48.849392
     assert lon == 2.331544
 
-
+@pytest.mark.skipif(sys.platform == "win32", reason="Proxy bug")
 @pytest.mark.asyncio
 async def test_get_rome_suggestions():
     out = await library.rome_list_query("phil")
