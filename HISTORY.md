@@ -5,11 +5,14 @@
 - Suppression de la commande `andi-matching` et de ses dépendances.
 - Placer le SQL et les méthodes / fonctions y accédant dans le logiciel `an4.andidb`.
 
-### 1.7.0.dev1
+### 1.7.0.dev2 - 23 juillet 2020
 
 - La recherche de codes ROME / métiers est asynchrone (performances ++)
 - Suppression des tests Behave, remplacement par des pytests
 - Amélioration autodoc OpenAPI
+
+### 1.7.0.dev1 - 19 juillet 2020
+
 - Suppression des routes /entreprise et /track
 - Création de l'index persistant de recherche ROM dans un répertoire personnalisable.
 - Préfixage des variables d'environnement spécifiques avec "AN4_"
