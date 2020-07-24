@@ -31,6 +31,6 @@ class MetaModel(BaseModel):
         }
 
 
-def get_schema_example(model: t.Type[BaseModel]) -> t.Dict[str, t.Any]:
+def get_model_example(model: t.Type[BaseModel]) -> t.Dict[str, t.Any]:
     """Fournit l'exemple d'un modèle"""
     return model.Config.schema_extra["example"]

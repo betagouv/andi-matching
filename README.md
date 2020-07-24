@@ -149,6 +149,15 @@ En fournissant les **variables d'environnement** suivantes :
 >
 > Exemple : `AN4_NO_DB_CONNECTION=true`
 
+**`AN4_RUN_CONNECTED_TESTS`** (pour développeurs seulement)
+> Si votre poste dispose d'une connexion Internet et d'une connexion à une base de données réelle,
+> vous pouvez exécuter les tests unitaires tirant parti de ces deux choses en exposant dette
+> variable d'environnement avec la valeur `true`. Sans quoi les tests nécessitant une connexion
+> Internet (exemple l'utilisation d'une API externe) et une base de données seront remplacés par des
+> tests utilisant des mocks.
+>
+> Exemple en bash : `AN4_RUN_CONNECTED_TESTS=true pytest [ options ]`
+
 **`HTTP_PROXY`**, **`HTTPS_PROXY`** et **`NO_PROXY`** (si nécessaire)
 > `andi-api` nécessite l'accès à des ressources Restful externes sur le Web fournies par des
 > services partenaires. Si l'accès à Internet nécessite la traversée d'un proxy HTTP(s), ces

@@ -15,7 +15,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from .common import MetaModel, get_schema_example
+from .common import MetaModel, get_model_example
 
 
 class QueryModel(MetaModel):
@@ -24,7 +24,7 @@ class QueryModel(MetaModel):
     class Config:
         schema_extra = {
             "example": {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 "needle": "boulanger"
             }
         }
@@ -59,9 +59,9 @@ class ResponseModel(MetaModel):
     class Config:
         schema_extra = {
             "example": {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 "data": [{
-                    **get_schema_example(RomeSuggestion)
+                    **get_model_example(RomeSuggestion)
                 }]
             }
         }

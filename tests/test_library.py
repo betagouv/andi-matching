@@ -38,64 +38,16 @@ Expected geo api output:
     "limit": 5
 }
 """
-import json
-import pathlib
-import pandas as pd
-import pytest
-import sys
-
-import andi.webservice
 import andi.webservice.library as library
-
+import pytest
 from andi.webservice.schemas.match import DistanceCriterion, RomeCodesCriterion
 
-
+# FIXME: doit être en mode mocké également
 @pytest.mark.asyncio
 async def test_string_query():
     out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
     assert out is not None
     assert isinstance(out, dict)
-
-
-@pytest.mark.asyncio
-async def test_get_codes():
-    out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
-    lat, lon = library.get_coordinates(out)
-    assert lat == 48.849392
-    assert lon == 2.331544
-
-@pytest.mark.skipif(sys.platform == "win32", reason="Proxy bug")
-@pytest.mark.asyncio
-async def test_get_rome_suggestions():
-    out = await library.rome_list_query("phil")
-    print(json.dumps(out, indent=2))
-    assert out is not None
-    assert len(out) == 4
-    found = False
-    for res in out:
-        if res.get('id') == 'K2401':
-            found = True
-    assert found
-
-
-def test_get_rome_suggest():
-    referentiels_dir = pathlib.Path(andi.webservice.__file__).resolve().parent / "referentiels"
-    ROME_DF = pd.read_csv(referentiels_dir / "rome_lbb.csv")
-    ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
-    OGR_DF = pd.read_csv(referentiels_dir / "ogr_lbb.csv")
-    OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
-    ROME_DF['stack'] = ROME_DF.apply(lambda x: library.normalize(x['label']), axis=1)
-    OGR_DF['stack'] = OGR_DF.apply(lambda x: library.normalize(x['label']), axis=1)
-
-    out = library.rome_suggest_v1("phil", (ROME_DF, OGR_DF))
-    print(json.dumps(out, indent=2))
-    assert out is not None
-    assert len(out) == 4
-    found = False
-    for res in out:
-        if res.get('id') == 'K2401':
-            found = True
-    assert found
 
 
 def test_get_parameters():

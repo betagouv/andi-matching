@@ -35,11 +35,10 @@ import logging
 from enum import Enum
 from typing import List, Union, Tuple
 
-from andi.webservice.schemas.common import get_schema_example, MetaModel
 from pydantic import BaseModel, Field, Json, PositiveInt
 
-from .common import MetaModel, get_schema_example
-from ..library import geo_code_query, get_coordinates
+from .common import MetaModel, get_model_example
+from ..library import geo_code_query
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class Address(BaseModel):
         schema_extra = {
             "example": {
                 "type": "string",
-                "value": "5, rue de la Paix - 55320 Sacogne"
+                "value": "12, rue François Bonvin - 75015 Paris"
             }
         }
 
@@ -73,15 +72,9 @@ class Address(BaseModel):
         else:
             logger.error(f"Unknown address type '{self.type}'.")
             raise
-        lat, lon = get_coordinates(geo_data)
+        lon, lat = geo_data['features'][0]['geometry']['coordinates']
         logger.debug('Extracted query coordinates lat %s lon %s', lat, lon)
         return lat, lon
-
-
-# FIXME: Semble inutilisé
-class CriteriaNames(str, Enum):
-    distance = 'distance'
-    rome_codes = 'rome_codes'
 
 
 class Criterion(BaseModel):
@@ -127,7 +120,7 @@ class RomeCodesCriterion(Criterion):
             "example": {
                 'priority': 5,
                 'name': 'rome_codes',
-                'rome_list': [{**get_schema_example(RomeCode)}],
+                'rome_list': [{**get_model_example(RomeCode)}],
                 "exclude_naf": []
             }
         }
@@ -146,16 +139,16 @@ class QueryModel(MetaModel):
     class Config:
         schema_extra = {
             'example': {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 'address': {
-                    **get_schema_example(Address)
+                    **get_model_example(Address)
                 },
                 'criteria': [
                     {
-                        **get_schema_example(DistanceCriterion)
+                        **get_model_example(DistanceCriterion)
                     },
                     {
-                        **get_schema_example(RomeCodesCriterion)
+                        **get_model_example(RomeCodesCriterion)
                     }
                 ]
             }
@@ -232,13 +225,13 @@ class ResponseData(BaseModel):
                 "phonenumber": "02345670",
                 "city": "Marines",
                 "coords": {
-                    **get_schema_example(Coordinates)
+                    **get_model_example(Coordinates)
                 },
                 "naf": "1623Z",
                 "siret": "32774533700029",
                 "distance": 5,
                 "scoring": {
-                    **get_schema_example(Scoring)
+                    **get_model_example(Scoring)
                 },
                 "score": 53,
                 "activity": "Fabrication de charpentes et d'autres menuiseries",
@@ -257,9 +250,9 @@ class ResponseModel(MetaModel):
     class Config:
         schema_extra = {
             'example': {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 "_trace": "not_implemented_yet",
                 "data": [{
-                    **get_schema_example(ResponseData)
+                    **get_model_example(ResponseData)
                 }]
             }}
