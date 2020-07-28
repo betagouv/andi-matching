@@ -1,15 +1,16 @@
 """
 Fixtures pour pytest
 """
+import json
 import os
 import pathlib
 import sys
 
 if sys.version_info >= (3, 8):
-    import unittest.mock as mock
+    pass
 else:
     # Backport de unittest.mock de Python 3.8
-    import mock
+    pass
 
 import fastapi
 import fastapi.testclient
@@ -52,28 +53,29 @@ def client(app) -> fastapi.testclient.TestClient:
     return fastapi.testclient.TestClient(app)
 
 
-# Mocks pour aiohttp.ClientSession
-# ================================
-
-@pytest.fixture()
-def mocked_aiohttp_get():
-    async_mock = mock.AsyncMock()
-    mock.patch("aiohttp.ClientSession.get.__aenter__", side_effect=async_mock)
-    return async_mock
-
-
 @pytest.fixture(scope="session")
 def mocked_aiohttp_response():
     class MockedResponse:
         """
         Une fausse réponse pour aiohttp.ClientSession.get
+        Voir tests/test_conftest.py pour un exemple
         """
 
-        def __init__(self, data):
-            self._data = data
+        def __init__(self, text, status):
+            self._text = text
+            self.status = status
+
+        async def text(self):
+            return self._text
 
         async def json(self):
-            return self._data
+            return json.loads(self._text)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
 
     return MockedResponse
 

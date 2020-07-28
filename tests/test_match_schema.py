@@ -1,10 +1,13 @@
+import json
+
 import andi.webservice.schemas.match as target
 import pytest
+
 from .conftest import skip_connected
 
 
 @pytest.mark.asyncio
-async def test_address_model_mocked(mocked_aiohttp_get, mocked_aiohttp_response):
+async def test_address_model_mocked(mocker, mocked_aiohttp_response):
     input = {
         "type": "string",
         "value": "15 rue du Four - 75006 Paris"
@@ -18,7 +21,8 @@ async def test_address_model_mocked(mocked_aiohttp_get, mocked_aiohttp_response)
                         'citycode': '75106', 'city': 'Paris', 'district': 'Paris 6e Arrondissement',
                         'context': '75, Paris, Île-de-France', 'street': 'Rue du Four'}}], 'attribution': 'BAN',
               'licence': 'ETALAB-2.0', 'query': '15 rue du Four - 75006 Paris', 'limit': 5}
-    mocked_aiohttp_get.return_value = mocked_aiohttp_response(output)
+    fake_response = mocked_aiohttp_response(json.dumps(output), 200)
+    mocker.patch("aiohttp.ClientSession.get", return_value=fake_response)
     addr = target.Address.parse_obj(input)
     lat, lon = await addr.get_coord()
     assert abs(lat - 48.852733) < 0.1

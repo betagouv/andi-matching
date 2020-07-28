@@ -44,7 +44,7 @@ def main():
         print(defaultconfig_path.read_text())
         return
 
-    # Un fichier de config person par la ligne de connande
+    # Un fichier de config personnel par la ligne de commande
     if args.config_file is not None:
         os.environ[settings.CONFIG_FILE_ENNVAR] = args.config_file.name
         args.config_file.close()

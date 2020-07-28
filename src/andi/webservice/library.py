@@ -13,7 +13,6 @@ import typing as t
 import uuid
 
 import aiohttp
-from pydantic import Json
 import pytz
 import unidecode
 from pydantic import BaseModel
