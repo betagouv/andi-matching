@@ -2,7 +2,16 @@
 Tests de andi.webservice.main
 """
 import shlex
+import sys
 import andi.webservice.main as target
+
+from typing import List
+
+
+def command_split(cmd: str) -> List[str]:
+    if sys.platform == "win32":
+        return cmd.split()
+    return shlex.split(cmd)
 
 
 def test_help():
@@ -23,7 +32,7 @@ def test_dump_default_config():
 
 def test_config_file(data_directory):
     config_file = data_directory / "customconfig.py"
-    command = shlex.split(f"--config-file {config_file}")
+    command = command_split(f"--config-file {config_file}")
     parser = target.make_arg_parser()
     args = parser.parse_args(command)
     assert args.config_file.mode == "r"
