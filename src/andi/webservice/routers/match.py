@@ -4,12 +4,12 @@
 import logging
 import pprint
 
-from andi.matching import lib_match
 from fastapi import APIRouter, Depends
 
 from .. import dbpool
 from ..hardconfig import API_VERSION
 from ..library import get_trace_obj, get_parameters, utc_now
+from ..match import run_profile_async
 from ..schemas.match import QueryModel, ResponseModel
 from ..settings import config
 
@@ -32,8 +32,8 @@ async def matching(query: QueryModel, db=Depends(dbpool.get)):
     lat, lon = await query.address.get_coord()
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
-    raw_data = await lib_match.run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
-                                                 **params)
+    raw_data = await run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
+                                       **params)
     logger.debug('raw responses:')
     logger.debug(pprint.pformat(raw_data[:4]))
     data = await make_data(raw_data)
