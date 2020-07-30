@@ -1,11 +1,12 @@
 """
 Route /
 """
+import functools
 import math
 import os
 import urllib.parse
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from .. import __version__
 from ..hardconfig import START_TIME, API_VERSION
@@ -43,13 +44,20 @@ def censored_url(real_url: str) -> str:
 
 
 @router.get("/", tags=["system"], summary="Status", description="Le status du service ANDi.")
-def root():
+def root(request: Request):
     """
     Le status du service ANDi
     """
     now = utc_now()
     delta = now - START_TIME
     delta_s = math.floor(delta.total_seconds())
+    base_url = str(request.url)
+    if base_url.endswith("//"):
+        base_url = base_url[:-1]
+    if not base_url.endswith("/"):
+        base_url += "/"
+
+    absolute_url = functools.partial(urllib.parse.urljoin, base_url)
     return {
         'all_systems': 'nominal',
         'timestamp': now,
@@ -58,5 +66,8 @@ def root():
         'api_version': API_VERSION,
         "configuration": os.getenv(CONFIG_FILE_ENNVAR, "<default>"),
         "database": censored_url(config.PG_CONNECTIONS_POOL["dsn"]),
-        "software_version": __version__
+        "software_version": __version__,
+        "base_url": base_url,
+        "doc_urls": [absolute_url("docs"), absolute_url("redoc")],
+        "openapi_url": absolute_url("openapi.json")
     }

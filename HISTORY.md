@@ -1,7 +1,9 @@
 ## Historique des versions
 
-### 1.7.0.dev3 - 
+### Cette branche Git - 
 
+- andi.webservice n'a plus de dépendance sur andi.matching - qui peut être débranché.
+- Nouvelles meta informations dans la route /
 - Possibilité d'exécuter ou non les tests avec connexions
 - Plus de tests, mocking des API externes
 - Suppression des ressources inutilisées (fonctions, ...)

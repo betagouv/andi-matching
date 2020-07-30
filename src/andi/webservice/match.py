@@ -6,6 +6,7 @@ import json
 import logging
 import os
 from collections import OrderedDict
+from typing import Tuple, Dict, Container, Iterable
 
 from . import sql as SQLLIB
 from .hardconfig import ROME2NAF_CSV_FILE, MAX_VALUE_GROUP
@@ -23,7 +24,7 @@ async def run_profile_async(lat, lon, max_distance, romes, includes, excludes, s
 
     logger.debug('Naf2Rome "andidata" method selected')
     # FIXME: Rendre asynchrone (actuellement blocage de l'event loop)
-    naf_rules = get_andidata_naflist(romes, includes, excludes)
+    naf_rules = selected_nafs_from_romes(romes, includes, excludes)
     naf_def = False
 
     logger.debug('Naf matching rules:\n%s', json.dumps(naf_rules, indent=2))
@@ -64,35 +65,48 @@ async def run_profile_async(lat, lon, max_distance, romes, includes, excludes, s
     return result
 
 
-def get_andidata_naflist(romes, include=None, exclude=None):
+def selected_nafs_from_romes(
+        romes: "Container[str]", include: "Container[str]" = None,
+        exclude: "Container[str]" = None) -> "Tuple[Dict[str, str], Dict]":
+    """
+
+    Args:
+        romes: Liste de code ROME
+        include: Liste de codes ROME supplémentaires (?)
+        exclude: Liste de codes ROME à exclure
+
+    Returns:
+        Un dict de codes NAF avec les scores.
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filename = f"{current_dir}/data_files/{ROME2NAF_CSV_FILE}"
-    include_list = []
-    exclude_list = []
+    included_rows = []
+    # FIXME: remplacer excluded_nafs par un set() et tester
+    excluded_nafs = []
     with open(filename) as csvfile:
-        rdr = csv.DictReader(
+        reader = csv.DictReader(
             csvfile,
             delimiter=',',
             quotechar='"',
             quoting=csv.QUOTE_MINIMAL,
         )
-        for row in rdr:
+        for row in reader:
             if row['rome'] in romes:
-                include_list.append(row)
+                included_rows.append(row)
             if include and row['rome'] in include:
-                include_list.append(row)
+                included_rows.append(row)
             if exclude and row['rome'] in exclude:
-                exclude_list.append(row['naf'])
+                excluded_nafs.append(row['naf'])
 
-    include_list[:] = [el for el in include_list if el['naf'] not in exclude_list]
-    logger.debug('raw naflist: %s', include_list)
+    included_rows[:] = [row for row in included_rows if row['naf'] not in excluded_nafs]
+    logger.debug('raw naflist: %s', included_rows)
 
-    out_list = {x['naf']: x['score'] for x in include_list}
+    out = {x['naf']: x['score'] for x in included_rows}
 
-    return [out_list, {}]
+    return out, {}
 
 
-def get_naf_sql(rules):
+def get_naf_sql(rules) -> str:
     '''
     Get sql rules to select naf code
     '''
@@ -125,7 +139,7 @@ def get_naf_sql(rules):
     return "1"
 
 
-def parse_rome_size_prefs(rome_defs, tpe, pme, eti, ge):
+def parse_rome_size_prefs(rome_defs, tpe, pme, eti, ge) -> Iterable[bool]:
     base = OrderedDict([
         ('tpe', tpe),
         ('pme', pme),

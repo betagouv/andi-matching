@@ -5,7 +5,7 @@ from urllib.parse import quote_plus
 import psycopg2
 import yaml
 from andi.webservice.hardconfig import MAX_VALUE_GROUP
-from andi.webservice.match import logger, get_andidata_naflist, get_naf_sql, parse_rome_size_prefs, get_size_rules
+from andi.webservice.match import logger, selected_nafs_from_romes, get_naf_sql, parse_rome_size_prefs, get_size_rules
 from psycopg2.extras import RealDictCursor
 
 from andi.webservice import sql as SQLLIB
@@ -122,7 +122,7 @@ def run_profile(cfg, lat, lon, max_distance, romes, includes, excludes, sizes, m
         naf_rules = parse_naf_list(naf_def, includes, excludes)
     elif rome2naf == 'andidata':
         logger.debug('Naf2Rome "andidata" method selected')
-        naf_rules = get_andidata_naflist(romes, includes, excludes)
+        naf_rules = selected_nafs_from_romes(romes, includes, excludes)
         naf_def = False
 
     logger.debug('Naf matching rules:\n%s', json.dumps(naf_rules, indent=2))

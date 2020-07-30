@@ -4,7 +4,7 @@
 - Placer le SQL et les méthodes / fonctions y accédant dans le logiciel `an4.andidb`.
 - Renommer les endpoints et méthodes HTTP conformément à la norme CDC.
 
-## Mise en conformité normes CDC
+## Mise en conformité normes CDC des APIs
 
 - versionner l'API, ce qui n'est pas fait, pour exposer http://le-serveur.cdc.fr/v1/endpoint" (...)
   et donc réorganiser le code pour permettre des "smooth upgrade" et des alias plus faciles.
@@ -32,3 +32,12 @@ bloc :
 Le "_v" (version d'API) se trouvant dans l'URL dorénavant - source potentielle d'ambigïté / conflit
 -, les autres infos ne sont pas exploitées ni enregistrées (rappel: le tracking interne est
 abandonné).
+
+## Table ROME -> NAF
+
+- Quelle est son origine ? (OpenData ?)
+- Y a-t-il une API qui fournit la même chose ?
+- Pourquoi n'est-elle pas dans la base de données ?
+- Seules les colonnes "rome", "naf", et "score" nous intéressent. Les autres ne servent que de
+  "commentaires".
+- La lecture d'un .csv à la volée n'est pas performante.
