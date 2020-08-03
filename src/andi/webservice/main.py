@@ -7,11 +7,12 @@ import pathlib
 import uvicorn
 
 from . import __version__
+from . import hardsettings
 from . import settings
 
 logger = logging.getLogger(__name__)
 
-BANNER = """\
+BANNER = r"""\
   ,---.  ,--.  ,--.,------.  ,--.         ,---.  ,------. ,--. 
  /  O  \ |  ,'.|  ||  .-.  \ `--',-----. /  O  \ |  .--. '|  |
 |  .-.  ||  |' '  ||  |  \  :,--.'-----'|  .-.  ||  '--' ||  |
@@ -25,7 +26,7 @@ def make_arg_parser() -> argparse.ArgumentParser:
     add_arg = parser.add_argument
     add_arg("-c", "--config-file", type=argparse.FileType("r"), default=None,
             help=("Fichier de configuration remplaçant celui fourni par la variable "
-                  f"d'environnement {settings.CONFIG_FILE_ENNVAR}"
+                  f"d'environnement {hardsettings.CONFIG_FILE_ENNVAR}"
                   )
             )
     add_arg("--dump-default-config", action="store_true",
@@ -46,7 +47,7 @@ def main():
 
     # Un fichier de config personnel par la ligne de commande
     if args.config_file is not None:
-        os.environ[settings.CONFIG_FILE_ENNVAR] = args.config_file.name
+        os.environ[hardsettings.CONFIG_FILE_ENNVAR] = args.config_file.name
         args.config_file.close()
         settings.reset_config()
     config = settings.config

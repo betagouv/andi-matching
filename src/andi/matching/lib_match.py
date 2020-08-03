@@ -4,7 +4,7 @@ from urllib.parse import quote_plus
 
 import psycopg2
 import yaml
-from andi.webservice.hardconfig import MAX_VALUE_GROUP
+from andi.webservice.hardsettings import MAX_VALUE_GROUP
 from andi.webservice.match import logger, selected_nafs_from_romes, get_naf_sql, parse_rome_size_prefs, get_size_rules
 from psycopg2.extras import RealDictCursor
 

@@ -7,7 +7,7 @@ import pprint
 from fastapi import APIRouter, Depends
 
 from .. import dbpool
-from ..hardconfig import API_VERSION
+from ..hardsettings import API_VERSION
 from ..library import get_trace_obj, get_parameters, utc_now
 from ..match import run_profile_async
 from ..schemas.match import QueryModel, ResponseModel
@@ -19,6 +19,7 @@ router = APIRouter()
 
 
 @router.post("/match", response_model=ResponseModel,
+             operation_id="rechercherSocietes",
              summary="Recherche de sociétés",
              description="Recherche de sociétés à proximité pour une immersion.",
              tags=["public"])

@@ -9,7 +9,7 @@ import typing as t
 import dotenv
 import pyflexconfig
 
-from .hardconfig import CONFIG_FILE_ENNVAR
+from .hardsettings import CONFIG_FILE_ENNVAR
 
 _config = types.SimpleNamespace()
 _defaultsettings_path = pathlib.Path(__file__).resolve().parent / "defaultsettings.py"

@@ -21,7 +21,7 @@ if typing.TYPE_CHECKING:
     from .schemas.common import MetaModel
     from typing import List, Union
 
-from .hardconfig import AWAITABLE_BLOCKING_POOL_MAX_THREADS
+from .hardsettings import AWAITABLE_BLOCKING_POOL_MAX_THREADS
 
 logger = logging.getLogger(__name__)
 

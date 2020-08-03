@@ -7,7 +7,7 @@ from andi.webservice.schemas.rome_suggest import QueryModel, ResponseModel
 from fastapi import APIRouter
 from pydantic.types import PositiveInt
 
-from ..hardconfig import API_VERSION
+from ..hardsettings import API_VERSION
 from ..library import get_trace_obj, utc_now, awaitable_blocking
 from ..romesuggest import SUGGEST_STATE, match as rome_suggest
 from ..settings import config
@@ -18,6 +18,7 @@ router = APIRouter()
 
 
 @router.get("/rome_suggest", response_model=ResponseModel,
+            operation_id="rechercherROMEs",
             summary="Suggestions ROME",
             description="Suggère des codes ROME et métiers en fonction d'un pattern de nom de métier",
             tags=["public"])

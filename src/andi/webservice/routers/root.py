@@ -9,7 +9,7 @@ import urllib.parse
 from fastapi import APIRouter, Request
 
 from .. import __version__
-from ..hardconfig import START_TIME, API_VERSION
+from ..hardsettings import START_TIME, API_VERSION
 from ..library import utc_now
 from ..settings import CONFIG_FILE_ENNVAR, config
 

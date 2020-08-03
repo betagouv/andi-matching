@@ -9,7 +9,7 @@ from collections import OrderedDict
 from typing import Tuple, Dict, Container, Iterable
 
 from . import sql as SQLLIB
-from .hardconfig import ROME2NAF_CSV_FILE, MAX_VALUE_GROUP
+from .hardsettings import ROME2NAF_CSV_FILE, MAX_VALUE_GROUP
 
 logger = logging.getLogger(__name__)
 
