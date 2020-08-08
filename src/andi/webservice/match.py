@@ -49,8 +49,7 @@ async def run_profile_async(lat, lon, max_distance,  # pylint: disable=too-many-
         'mul_naf': multipliers.get('fn', 5),
         'mul_siz': multipliers.get('ft', 3),
         'mul_wel': multipliers.get('fw', 2),
-        'mul_con': multipliers.get('fc', 1),
-
+        'mul_con': multipliers.get('fc', 1)
     }
     sql, params = ps2pg(SQLLIB.MATCH_QUERY.format(
         naf_rules=naf_sql,
@@ -59,10 +58,14 @@ async def run_profile_async(lat, lon, max_distance,  # pylint: disable=too-many-
     ), data)
 
     logger.debug("Obtained SQL:\n%s\n\n parameters:\n%s", sql, params)
-    raw_result = await conn.fetch(sql, *params)
-    result = [dict(row) for row in raw_result]
-
+    result = await conn_fetch(conn, sql, *params)
     return result
+
+
+async def conn_fetch(conn, sql, *params):
+    """Bien plus facile à Mocker pout les tests unitaires"""
+    raw_results = await conn.fetch(sql, *params)
+    return [dict(row) for row in raw_results]
 
 
 def selected_nafs_from_romes(
