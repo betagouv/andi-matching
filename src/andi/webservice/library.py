@@ -9,19 +9,18 @@ import datetime
 import functools
 import logging
 import string
-import typing
 import uuid
+from typing import List, Dict, Union, Any, AnyStr, Callable, TYPE_CHECKING
 
 import aiohttp
 import pytz
 import unidecode
 
-if typing.TYPE_CHECKING:
-    from .schemas.match import DistanceCriterion, RomeCodesCriterion
-    from .schemas.common import MetaModel
-    from typing import List, Union
-
 from .hardsettings import AWAITABLE_BLOCKING_POOL_MAX_THREADS
+
+if TYPE_CHECKING:
+    from .schemas.match import DistanceCriterion, RomeCodesCriterion
+    from .schemas.common import MetaModel  # pylint: disable=cyclic-import
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +131,7 @@ def utc_now() -> datetime.datetime:
     return datetime.datetime.now(tz=pytz.utc)
 
 
-def is_valid_uuid(val: t.AnyStr):
+def is_valid_uuid(val: AnyStr):
     try:
         uuid.UUID(str(val))
         return True
@@ -140,7 +139,7 @@ def is_valid_uuid(val: t.AnyStr):
         return False
 
 
-def get_trace_obj(query: MetaModel) -> t.Dict[str, t.Any]:
+def get_trace_obj(query: MetaModel) -> Dict[str, Any]:
     return {
         '_query_id': query.query_id,
         '_session_id': query.session_id,
@@ -162,7 +161,7 @@ _awaitable_blocking_pool = concurrent.futures.ThreadPoolExecutor(
 # awaitable_blocking_pool = None  # Default asyncio pool
 
 
-async def awaitable_blocking(func: t.Callable, *args: t.Any, **kwargs: t.Any) -> t.Any:
+async def awaitable_blocking(func: Callable, *args: Any, **kwargs: Any) -> Any:
     """
     Enable to "await" a blocking I/O callable from an asyncio coroutine
 

@@ -43,7 +43,7 @@ def __getattr__(name: str) -> t.Any:
     Lazy globals init
     pseudo globale SUGGEST_STATE
     """
-    global _suggest_state
+    global _suggest_state  # pylint: disable=global-statement
     if name == "SUGGEST_STATE":
         if _suggest_state is None:
             _suggest_state = init_state(force=settings.config.ROME_SUGGEST_REBUILD)
@@ -170,7 +170,8 @@ def write_dataframe(idx_name, df):
 
 
 class CustomFuzzyTerm(FuzzyTerm):
-    def __init__(self, fieldname, text, boost=1.0, maxdist=2, prefixlength=3, constantscore=True):
+    def __init__(self, fieldname, text, boost=1.0, maxdist=2,  # pylint: disable=too-many-arguments
+                 prefixlength=3, constantscore=True):
         super().__init__(fieldname, text, boost, maxdist, prefixlength, constantscore)
 
 

@@ -2,6 +2,9 @@
 Tests de andi.webservice.match
 """
 from decimal import Decimal
+from uuid import uuid4
+from andi.webservice.schemas.match import MatchQueryModel, Address, AddressTypes, PositiveInt
+from andi.webservice.library import utc_now
 import andi.webservice.match as target
 
 
@@ -624,4 +627,22 @@ expected = [
      'score_geo': 5, 'score_total': 38}
 ]
 
-print(len(expected))
+
+def test_match_route(client):
+    query = {'_v': 1, '_timestamp': '2020-08-08 11:38:41.626228+00:00',
+             '_query_id': '8c38dad9-1ec5-4b06-9b57-cf2d8713492f',
+             '_session_id': '15449a8c-174b-463d-b40a-2f98ccd1595d',
+             'address': {'type': 'string', 'value': '12, rue François Bonvin - 75015 Paris'},
+             'criteria': [
+                 {'priority': 2, 'name': 'distance', 'distance_km': 10},
+                 {'priority': 5, 'name': 'rome_codes',
+                  'rome_list': [
+                      {'id': 'D1106', 'include': True,
+                       'exclude': False}],
+                  'exclude_naf': []}
+             ]
+             }
+
+    response = client.post("/match", json=query)
+    assert response.status_code == 200
+

@@ -126,7 +126,7 @@ class RomeCodesCriterion(Criterion):
         }
 
 
-class QueryModel(MetaModel):
+class MatchQueryModel(MetaModel):
     """
     Modèle de validation des requêtes de l'outil de matching
     """
@@ -240,7 +240,7 @@ class ResponseData(BaseModel):
         }
 
 
-class ResponseModel(MetaModel):
+class MatchResponseModel(MetaModel):
     """
     Modèle de validation des résultats de l'outil de matching
     """

@@ -1,6 +1,5 @@
 # Futur - à planifier
 
-- Suppression de la commande `andi-matching` et de ses dépendances.
 - Placer le SQL et les méthodes / fonctions y accédant dans le logiciel `an4.andidb`.
 - Renommer les endpoints et méthodes HTTP conformément à la norme CDC.
 

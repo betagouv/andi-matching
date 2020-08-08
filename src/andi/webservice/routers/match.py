@@ -10,7 +10,7 @@ from .. import dbpool
 from ..hardsettings import API_VERSION
 from ..library import get_trace_obj, get_parameters, utc_now
 from ..match import run_profile_async
-from ..schemas.match import QueryModel, ResponseModel
+from ..schemas.match import MatchQueryModel, MatchResponseModel
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/match", response_model=ResponseModel,
+@router.post("/match", response_model=MatchResponseModel,
              operation_id="rechercherSocietes",
              summary="Recherche de sociétés",
              description="Recherche de sociétés à proximité pour une immersion.",
              tags=["public"])
-async def matching(query: QueryModel, db=Depends(dbpool.get)):
+async def matching(query: MatchQueryModel, db=Depends(dbpool.get)):
     """
     Matching endpoint:
     Web API for ANDi internal matching algorithm.

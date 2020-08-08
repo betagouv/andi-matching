@@ -1,8 +1,11 @@
 ## Historique des versions
 
-### Cette branche Git - 
+### 1.7.0.dev3
 
-- andi.webservice n'a plus de dépendance sur andi.matching - qui peut être débranché.
+- pylint : 10/10
+- options de pylint et tox dans setup.cfg
+- andi.matching supprimé. Ressources nécessaires à andi.webservice déménagées dans ce dernier.
+- Suppression de la commande `andi-matching` et de ses dépendances.
 - Nouvelles meta informations dans la route /
 - Possibilité d'exécuter ou non les tests avec connexions
 - Plus de tests, mocking des API externes

@@ -43,7 +43,8 @@ def censored_url(real_url: str) -> str:
     return urllib.parse.urlunparse(censored_parsed)
 
 
-@router.get("/", tags=["system"], summary="Status", description="Le status du service ANDi.")
+@router.get("/", operation_id="systemStatus", summary="Status",
+            description="Le status du service ANDi.", tags=["system"])
 def root(request: Request):
     """
     Le status du service ANDi

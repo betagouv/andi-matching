@@ -13,11 +13,11 @@ from . import settings
 logger = logging.getLogger(__name__)
 
 BANNER = r"""\
-  ,---.  ,--.  ,--.,------.  ,--.         ,---.  ,------. ,--. 
+  ,---.  ,--.  ,--.,------.  ,--.         ,---.  ,------. ,--.
  /  O  \ |  ,'.|  ||  .-.  \ `--',-----. /  O  \ |  .--. '|  |
 |  .-.  ||  |' '  ||  |  \  :,--.'-----'|  .-.  ||  '--' ||  |
-|  | |  ||  | `   ||  '--'  /|  |       |  | |  ||  | --' |  | 
-`--' `--'`--'  `--'`-------' `--'       `--' `--'`--'     `--' 
+|  | |  ||  | `   ||  '--'  /|  |       |  | |  ||  | --' |  |
+`--' `--'`--'  `--'`-------' `--'       `--' `--'`--'     `--'
 """
 
 
@@ -56,7 +56,7 @@ def main():
 
     # Notez que l'import ici est intentionnel. Ne le remettez pas en tête de module
     # Certaines initialisation doivent s'effectuer le plus tard possible
-    from .asgi import app
+    from .asgi import app  # pylint: disable=import-outside-toplevel
     config.UVICORN_OPTIONS["log_config"] = config.LOGGING
     uvicorn.run(
         app,

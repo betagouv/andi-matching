@@ -48,9 +48,11 @@ def app() -> fastapi.FastAPI:
     return real_app
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client(app) -> fastapi.testclient.TestClient:
-    return fastapi.testclient.TestClient(app)
+    # return fastapi.testclient.TestClient(app) # -> Ne déclenche pas l'event "startup"
+    with fastapi.testclient.TestClient(app) as client_:
+        yield client_
 
 
 @pytest.fixture(scope="session")

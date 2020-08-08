@@ -14,8 +14,8 @@ from .hardsettings import ROME2NAF_CSV_FILE, MAX_VALUE_GROUP
 logger = logging.getLogger(__name__)
 
 
-async def run_profile_async(lat, lon, max_distance, romes, includes, excludes, sizes, multipliers,
-                            conn=False, limit=None):  # pylint: disable=too-many-arguments
+async def run_profile_async(lat, lon, max_distance,  # pylint: disable=too-many-arguments,too-many-locals
+                            romes, includes, excludes, sizes, multipliers, conn=False, limit=None):
     """
     Async optimized version of run_profile, for real-time web server usage
     """
@@ -66,8 +66,8 @@ async def run_profile_async(lat, lon, max_distance, romes, includes, excludes, s
 
 
 def selected_nafs_from_romes(
-        romes: "Container[str]", include: "Container[str]" = None,
-        exclude: "Container[str]" = None) -> "Tuple[Dict[str, str], Dict]":
+        romes: Container[str], include: Container[str] = None,
+        exclude: Container[str] = None) -> Tuple[Dict[str, str], Dict]:
     """
 
     Args:
