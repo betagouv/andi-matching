@@ -1,6 +1,6 @@
 ## Historique des versions
 
-### 1.7.0.dev3
+### 1.7.0.dev3 - 10 aout 2020
 
 - pylint : 10/10
 - options de pylint et tox dans setup.cfg
