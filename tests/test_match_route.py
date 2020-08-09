@@ -29,6 +29,7 @@ query = {
                                  'id': 'D1106',
                                  'include': True}]}]}
 
+# Réponse brute de laBD (transformée en liste de dicos)
 expected_raw = [
     {
         'adresse': '10 Route de Paris 89200 Avallon',
