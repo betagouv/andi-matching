@@ -1,12 +1,20 @@
 ## Historique des versions
 
-### Futur - à planifier
+### 1.7.0.dev3
 
+- pylint : 10/10
+- options de pylint et tox dans setup.cfg
+- andi.matching supprimé. Ressources nécessaires à andi.webservice déménagées dans ce dernier.
 - Suppression de la commande `andi-matching` et de ses dépendances.
-- Placer le SQL et les méthodes / fonctions y accédant dans le logiciel `an4.andidb`.
+- Nouvelles meta informations dans la route /
+- Possibilité d'exécuter ou non les tests avec connexions
+- Plus de tests, mocking des API externes
+- Suppression des ressources inutilisées (fonctions, ...)
+- Suppression du tracking
 
 ### 1.7.0.dev2 - 23 juillet 2020
 
+- Suppression de l'enregistrement de l'exécution de /match dans la table de tracking
 - La recherche de codes ROME / métiers est asynchrone (performances ++)
 - Suppression des tests Behave, remplacement par des pytests
 - Amélioration autodoc OpenAPI

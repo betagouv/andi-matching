@@ -1,18 +1,16 @@
 """
 /match
 """
-import json
 import logging
 import pprint
 
-from andi.matching import lib_match
 from fastapi import APIRouter, Depends
-from fastapi.encoders import jsonable_encoder
 
 from .. import dbpool
-from ..hardconfig import API_VERSION
-from ..library import get_trace_obj, get_parameters, utc_now, is_valid_uuid
-from ..schemas.match import QueryModel, ResponseModel
+from ..hardsettings import API_VERSION
+from ..library import get_trace_obj, get_parameters, utc_now
+from ..match import run_profile_async
+from ..schemas.match import MatchQueryModel, MatchResponseModel
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -20,11 +18,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/match", response_model=ResponseModel,
+@router.post("/match", response_model=MatchResponseModel,
+             operation_id="rechercherSocietes",
              summary="Recherche de sociétés",
              description="Recherche de sociétés à proximité pour une immersion.",
              tags=["public"])
-async def matching(query: QueryModel, db=Depends(dbpool.get)):
+async def matching(query: MatchQueryModel, db=Depends(dbpool.get)):
     """
     Matching endpoint:
     Web API for ANDi internal matching algorithm.
@@ -34,18 +33,13 @@ async def matching(query: QueryModel, db=Depends(dbpool.get)):
     lat, lon = await query.address.get_coord()
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
-    raw_data = await lib_match.run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
-                                                 **params)
+    raw_data = await run_profile_async(lat, lon, conn=db, limit=config.MATCHING_QUERY_LIMIT,
+                                       **params)
     logger.debug('raw responses:')
-    logger.debug(pprint.saferepr(raw_data[:4]))
+    logger.debug(pprint.pformat(raw_data[:4]))
     data = await make_data(raw_data)
     logger.debug('clean responses:')
-    logger.debug(pprint.saferepr(data[:4]))
-
-    try:
-        await match_track(query, params, lat, lon, db)
-    except Exception:  # pylint:disable=broad-except
-        pass
+    logger.debug(pprint.pformat(data[:4]))
 
     return {
         '_v': API_VERSION,
@@ -97,30 +91,3 @@ async def make_data(responses=None):
         'score': resp['score_total'],
         'activity': resp['sector']
     } for resp in responses]
-
-
-async def match_track(query, params, lat, lon, db):
-    sql = """
-    INSERT INTO trackers (
-        session_id,
-        version,
-        send_order,
-        data
-    ) VALUES ($1, $2, $3, $4);
-    """
-    if not is_valid_uuid(query.session_id):
-        # Do not store nor track "ANONYMOUS" session id's
-        logger.debug('Session id is not a valid UUID, skipping')
-        return
-    payload = {
-        'page': 'api',
-        'action': 'match',
-        'meta': {
-            'lat': lat,
-            'lon': lon,
-            'address': query.address,
-            'criteria': query.criteria,
-            'query_id': query.query_id
-        }
-    }
-    await db.execute(sql, query.session_id, 1, 0, json.dumps(jsonable_encoder(payload)))

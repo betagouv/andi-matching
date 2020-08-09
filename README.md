@@ -149,6 +149,15 @@ En fournissant les **variables d'environnement** suivantes :
 >
 > Exemple : `AN4_NO_DB_CONNECTION=true`
 
+**`AN4_RUN_CONNECTED_TESTS`** (pour développeurs seulement)
+> Si votre poste dispose d'une connexion Internet et d'une connexion à une base de données réelle,
+> vous pouvez exécuter les tests unitaires tirant parti de ces deux choses en exposant dette
+> variable d'environnement avec la valeur `true`. Sans quoi les tests nécessitant une connexion
+> Internet (exemple l'utilisation d'une API externe) et une base de données seront remplacés par des
+> tests utilisant des mocks.
+>
+> Exemple en bash : `AN4_RUN_CONNECTED_TESTS=true pytest [ options ]`
+
 **`HTTP_PROXY`**, **`HTTPS_PROXY`** et **`NO_PROXY`** (si nécessaire)
 > `andi-api` nécessite l'accès à des ressources Restful externes sur le Web fournies par des
 > services partenaires. Si l'accès à Internet nécessite la traversée d'un proxy HTTP(s), ces
@@ -249,45 +258,6 @@ La façon la plus simple de procéder consiste à :
 Lancer le serveur avec soit la commande `andi-api` soit en utilisant l'infrastructure de déploiement
 ASGI, à travers le fichier `main.asgi` à la racine de ce dépôt.
 
-## Outil CLI matching
-
-> **⚠️ Attention**
->
-> Cette partie de l'application **n'est plus maintenue !** La documentation relative à la commande
-> `andi-matching` n'est fournie qu'à titre indicatif. **Aucun** constat de dysfonctionnement ou
-> demande d'évolution ne seront pris en compte.
-
-L'application s'exécutant dans une console shell est invoquée par la commande `andi-matching`.
-
-```bash
-andi-matching --help
-
-Usage: andi-matching [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --config_file TEXT
-  --debug
-  --limit TEXT        Limit output rows (testing only)
-  --help              Show this message and exit.
-
-Commands:
-  list-drive
-  run-csv
-  run-drive
-```
-
-L'interface CLI accepte des paramètres directement saisis en ligne de commande, un lien vers un
-Google Sheet contenant les variables nécessaires, ou un fichier CSV.
-
-Exemples de commande:
-```bash
-andi-matching --lat '49.0465' --lon '2.0655' --max-distance 10 --rome K2112 \
-              --config_file config.yaml --debug --pme
-andi-matching --config_file config.yaml run-drive --profile [PROFIL]
-```
-
-TODO: fournir plus de détails sur ce que font les commandes.
-TODO : fournir la définition des colonnes des fichiers CSV et Google sheet
 
 # Déploiement via Travis / Docker (/!\ obsolète et non maintenu)
 
@@ -332,35 +302,26 @@ Quelques recommandations supplémentaires :
 
 ## Tests et validation
 
-Le lancement des tests et outils de validation (flake8, pylint, pytest) sont définis dans le
-`MakeFile`. Pour en disposer, il faut que vous ayez préalablement installé le package en mode "pour
-développeur".
 
-> **Windows**
->
-> Les commandes évoquées ci-dessous nécessitent un poste sous Linux ou MacOS, Windows n'ayant ni
-> `make` ni l'aptitude native d'exécuter les différentes commandes du `Makefile`. Il faudra aux
-> mainteneurs travaillant sous Windows lire le fichier `Makefile` et adapter les commandes à leur
-> environnement.
->
-> Si ces commandes s'avèrent nécessaire, le remplacement de `make` par `invoke` sera envisagé.
-
-Ils sont lancés comme suit:
+Ils sont lancés comme suit depuis un prompt à la racine du projet :
 ```bash
-# Tous (utilisé par le CLI):
-make tests
+# Tests unitaires
+pytest
 
-# Uniquement l'un d'eux
-make [flake8 | pylint | unittests]
+# Tests unitaires avec couverture
+pytest --cov=andi.webservice
 
+# Qualimétrie flake8
+flake8 src
+
+# Qualimétrie pylint
+pylint --rcfile=setup.cfg src
 ```
-Note: la commande `tests` fait passer `pylint` pour autant que le score dépasse 9.5 (cf. `MakeFile`
-=> `pylint-fail-under`)
 
 ### Sous **tox**
 
 Tox est le nouvel outil recommandé par python pour tester (et déployer) les composants Python. Il
-est utilisé ici pour tester l'outil sous plusieurs versions Python dans le CI de Travis.
+est utilisé ici pour tester l'outil sous plusieurs versions Python dans la CI.
 
 ```bash
 # Pour lancer tox
@@ -368,19 +329,10 @@ tox
 
 # Pour spécifier une version supportée par le composant:
 tox -e [ py37 | py38 ]
+
+# Attention, sous Windows, utilisez uniquement
+tox -e py37
 ```
-
-### Travis
-
-> **Note**
->
-> L'utilisation de Travis étant liée à l'hébergement du dépôt Git par **Github**, bientôt abandonné,
-> cette partie ne sera pas maintenue et tout aucun dysfonctionnement ou demande d'évolution de
-> l'utilisation de Travis ne sera pris en compte.
-> 
-
-Le fichier `.travis.yml` détaille les procédures de test et de validation automatisées, ainsi que le
-_build_ et le déploiement.
 
 # FAQ
 

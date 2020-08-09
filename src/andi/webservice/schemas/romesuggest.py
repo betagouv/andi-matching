@@ -15,16 +15,16 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from .common import MetaModel, get_schema_example
+from .common import MetaModel, get_model_example
 
 
-class QueryModel(MetaModel):
+class RomeQueryModel(MetaModel):
     needle: str = Field(..., description="Search string")
 
     class Config:
         schema_extra = {
             "example": {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 "needle": "boulanger"
             }
         }
@@ -49,7 +49,7 @@ class RomeSuggestion(BaseModel):
         }
 
 
-class ResponseModel(MetaModel):
+class RomeResponseModel(MetaModel):
     """
     Modèle des données sortantes de l'api suggestion code ROME
     Calqué sur l'API de La Bonne Boîte
@@ -59,9 +59,9 @@ class ResponseModel(MetaModel):
     class Config:
         schema_extra = {
             "example": {
-                **get_schema_example(MetaModel),
+                **get_model_example(MetaModel),
                 "data": [{
-                    **get_schema_example(RomeSuggestion)
+                    **get_model_example(RomeSuggestion)
                 }]
             }
         }

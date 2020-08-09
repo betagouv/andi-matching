@@ -9,7 +9,7 @@ import typing as t
 import dotenv
 import pyflexconfig
 
-from .hardconfig import CONFIG_FILE_ENNVAR
+from .hardsettings import CONFIG_FILE_ENNVAR
 
 _config = types.SimpleNamespace()
 _defaultsettings_path = pathlib.Path(__file__).resolve().parent / "defaultsettings.py"
@@ -20,13 +20,13 @@ def reset_config():
     Artifice permettant de forcer la re-lecture du pseudo-global ``config``
     depuis le ou les fichiers.
     """
-    global _config
+    global _config  # pylint: disable=global-statement
     _config = types.SimpleNamespace()
 
 
 def __getattr__(name: str) -> t.Any:
     """Lazy loading of the config object"""
-    global _config
+    global _config  # pylint: disable=global-statement
     if name == "config":
         dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
         if len(vars(_config)) == 0:

@@ -1,7 +1,16 @@
 """
 Fixtures pour pytest
 """
+import json
+import os
 import pathlib
+import sys
+
+if sys.version_info >= (3, 8):
+    pass
+else:
+    # Backport de unittest.mock de Python 3.8
+    pass
 
 import fastapi
 import fastapi.testclient
@@ -39,6 +48,41 @@ def app() -> fastapi.FastAPI:
     return real_app
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client(app) -> fastapi.testclient.TestClient:
-    return fastapi.testclient.TestClient(app)
+    # return fastapi.testclient.TestClient(app) # -> Ne déclenche pas l'event "startup"
+    with fastapi.testclient.TestClient(app) as client_:
+        yield client_
+
+
+@pytest.fixture(scope="session")
+def mocked_aiohttp_response():
+    class MockedResponse:
+        """
+        Une fausse réponse pour aiohttp.ClientSession.get
+        Voir tests/test_conftest.py pour un exemple
+        """
+
+        def __init__(self, text, status):
+            self._text = text
+            self.status = status
+
+        async def text(self):
+            return self._text
+
+        async def json(self):
+            return json.loads(self._text)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    return MockedResponse
+
+
+skip_connected = pytest.mark.skipif(
+    not os.getenv("AN4_RUN_CONNECTED_TESTS", "false") == "true",
+    reason="Tests avec connexion non exécuté"
+)

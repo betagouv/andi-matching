@@ -3,13 +3,13 @@ import uuid
 from datetime import datetime
 from typing import Union
 
-from andi.webservice.schemas.rome_suggest import QueryModel, ResponseModel
 from fastapi import APIRouter
 from pydantic.types import PositiveInt
 
-from ..hardconfig import API_VERSION
+from ..hardsettings import API_VERSION
 from ..library import get_trace_obj, utc_now, awaitable_blocking
 from ..romesuggest import SUGGEST_STATE, match as rome_suggest
+from ..schemas.romesuggest import RomeQueryModel, RomeResponseModel
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/rome_suggest", response_model=ResponseModel,
+@router.get("/rome_suggest", response_model=RomeResponseModel,
+            operation_id="rechercherROMEs",
             summary="Suggestions ROME",
             description="Suggère des codes ROME et métiers en fonction d'un pattern de nom de métier",
             tags=["public"])
@@ -38,7 +39,7 @@ async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: Pos
         'needle': q
     }
     logger.debug('Query params: %s', raw_query)
-    query = QueryModel(**raw_query)
+    query = RomeQueryModel(**raw_query)
 
     trace = get_trace_obj(query)
     logger.debug('Running query...')

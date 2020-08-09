@@ -10,9 +10,8 @@ __pycache__
 *.egg-info
 *.sh
 *.log
-deploy_ed25519
 dist/
 rome-suggest-index/
 output/
 .env
-.vscode/settings.json
+.pytest_cache/

@@ -4,7 +4,7 @@ Tests de andi.webservice.settings
 import os
 import types
 
-from andi.webservice.hardconfig import CONFIG_FILE_ENNVAR
+from andi.webservice.hardsettings import CONFIG_FILE_ENNVAR
 import andi.webservice.settings as settings
 
 
