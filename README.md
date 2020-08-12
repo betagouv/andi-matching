@@ -116,7 +116,7 @@ En fournissant les **variables d'environnement** suivantes :
 > lancement du serveur de développement par la commande `andi-api`, et seront ignorées lors de
 > l'utilisation d'un serveur ASGI externe.
 
-**`AN4_ROME_SUGGEST_INDEX_DIR`** (facultatif)
+**`AN4_ROME_SUGGEST_INDEX_DIR`** (facultatif en developpement mais vivement recommandé en production)
 
 > Comme expliqué ci-avant, `andi-api` nécessite un index de recherche pour les suggestions de code
 > ROME, index qui est construit de façon persistante dans un répertoire, créé pour l'occasion à un
@@ -384,3 +384,23 @@ passe `xUty#5%ba` en `xUty%235%25ba` et obtenir le DSN à fournir, c'est-à-dire
 ```
 AN4_PG_DSN=postgresql://dupont:xUty%235%25ba@serveur.tld:4321/database
 ```
+
+## Sources de données
+
+Vous remarquez dans l'arbre source de données les fichiers :
+
+- `src/andi/webservice/referentiels/metiers_onisep.csv`
+- `src/andi/webservice/referentiels/ogr_lbb.csv`
+- `src/andi/webservice/referentiels/rome_lbb.csv`
+- `src/andi/webservice/data_files/andi_rome2naf.csv`
+
+Les trois premiers dans le répertoire `src/andi/webservice/referentiels/` permettent de constituer
+l'index Whoosh de sélection de code ROME en fonction d'un extrait de nom de métier, index stocké
+selon la variable d'environnement `AN4_ROME_SUGGEST_INDEX_DIR` comme expliqué plus haut dans cette
+documentation.
+
+Le dernier permet de trouver les codes NAF correspondant à un code ROME
+
+Ces fichiers sont issus du projet "La bonne boite" et sont accessibles à partir de l'adresse :
+
+https://github.com/StartupsPoleEmploi/labonneboite/tree/master/ROME_NAF/referentiels

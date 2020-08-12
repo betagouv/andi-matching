@@ -40,3 +40,35 @@ abandonné).
 - Seules les colonnes "rome", "naf", et "score" nous intéressent. Les autres ne servent que de
   "commentaires".
 - La lecture d'un .csv à la volée n'est pas performante.
+
+## Réduire la base de données (table "entreprises")
+
+Il est possible d'obtenir nombre de données provenant actuellement de la table "entreprises" en les
+récupérant par une API de l'INSEE, connaissant le SIRET des entreprises retenues par la requête
+"/match".
+
+L'API en question :
+https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=Sirene&version=V3&provider=insee#tab3
+, plus particulièrement le endpoint "/siret/{siret}"
+
+La définition des données fournies par l'API : https://www.sirene.fr/sirene/public/static/liste-variables
+
+Avantages:
+
+- Base de données plus compacte, donc plus rapide à construire, dupliquer, ...
+- Disponibilité de données à jour (INSEE)
+
+Inconvénients:
+
+- Performances en retrait, quoiqu'il soit possible d'exécuter en simultanéïté les requêtes à l'API
+  INSEE. -> Évaluer les performances sur un prototype
+- Nécessite un token d'API - donc une inscription
+- Risques liés à la non disponibilité de l'API (maintenance, ...)
+- Risques liés aux droits d'utilisation
+  https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=Sirene&version=V3&provider=insee#tab3
+
+Travaux d'évaluation :
+
+- Enumérer les colonnes de la table "entreprises" pouvant être ainsi supprimées
+- Un prototype pour valider le concept et les performances
+
