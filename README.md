@@ -176,6 +176,15 @@ En fournissant les **variables d'environnement** suivantes :
 >
 > Exemple : `SSL_CERT_FILE=/dn-serviceandi/ntiers/an4/ext/ssl/cacert.crt`
 
+**`SCRIPT_NAME`** (obligatoire en production, inutile en développement)
+> Les serveurs WSGI comme Gunicorn employé dans le chaîne de publication de `andi-matching` sont
+> sensées tenir compte d'un certain nombre de [variables d'environnement définies
+> ici](https://www.python.org/dev/peps/pep-3333/#environ-variables). Lorsqu'on souhaite publier
+> derrière un proxy un service ailleurs qu'à la racine du site (exemple
+> http://schtroumpf.csc.fr/andi/api), il faut placer le path dans la variable d'environnement
+> `SCRIPT_NAME=/andi/api` (selon notre exemple) de sorte que la génération d'URLs par l'application
+> soit conforme au path de base choisi. Un exemple est fourni en FAQ pour publier l'application avec une chaîne Apache(+ mod_proxy) -> Gunicorn -> Uvicorn -> application FastAPI.
+
 **Autres variables d'environnement** : Si leur absence n'est à priori pas conséquente sur le
 fonctionnement du service, vous pouvez noter que les logiciels sur lesquels il se base peuvent aussi
 être paramètrés par des variables d'environnement:
@@ -404,3 +413,62 @@ Le dernier permet de trouver les codes NAF correspondant à un code ROME
 Ces fichiers sont issus du projet "La bonne boite" et sont accessibles à partir de l'adresse :
 
 https://github.com/StartupsPoleEmploi/labonneboite/tree/master/ROME_NAF/referentiels
+
+## Comment publier andi-matching...
+
+Avec la chaîne Apache -> Gunicorn -> Uvicorn -> Application FastAPI
+
+Lorsqu'on publie une application ASGI (comme FastAPI) derrière une telle chaîne, et que
+l'application n'est pas publiée à la racine du site (http://schtroumpf.csc.fr/) mais dans un path
+dédié (par exemple http://schtroumpf.cdc.fr/andi/api/), il est nécessaire de faire savoir aux
+applications Gunicorn, Uvicorn et FastAPI (andi-matching en l'occurrence) cette particularité en
+plaçant dans la variable d'environnement `SCRIPT_NAME` sous peine de voir la génération d'UrLs
+faussée.
+
+Hélas, le worker standard d'Uvicorn pour Gunicorn ne respecte ni ne transmet cette variable
+d'environnement. C'est la raison pour laquelle andi-matching fournit un worker ASGI qui tient compte
+de cette particularité de publication, dans l'objet `andi.webservice.workers.UvicornWorker` qu'il
+faudra utiliser en lieu et place de `uvicorn.workers.UvicornWorker` dans la commande de lancement du
+serveur de l'application.
+
+Ce qui suit est un exemple complet permettant la publication d'andi-matching à partir de l'URL
+`http://schtroumpf.cdc.fr/andi/api`.
+
+**Configuration Apache**
+
+Nous supposons que vous avez activé les extensions `mod_proxy` et `mod_proxy_http`.
+
+```
+# ...
+LoadModule proxy_module lib/apache2/modules/mod_proxy.so
+LoadModule proxy_http_module lib/apache2/modules/mod_proxy_http.so
+# ...
+```
+
+Il est supposé que vous utilisez un VirtualHost. Corrigez le cas échéant.
+
+```
+<VirtualHost *:80>
+    ServerName schtroumpt.cdc.fr
+    # ... autres options ad lib ...
+    ProxyRequests Off
+    # Ici nous supposons que Gunicorn écoute sur 127.0.0.1:8000
+    ProxyPass        "/andi/api"  "http://127.0.0.1:8000"
+    ProxyPassReverse "/andi/api"  "http://127.0.0.1:8000"
+    <Location "/andi/api">
+        Order allow,deny
+        Allow from all
+    </Location>
+    # ... autres options ad lib ...
+</VirtualHost>
+```
+
+Une fois les différentes options de configurations pour `andi-matching` mises en place, vous pouvez
+lancer le serveur Gunicorn avec la commande suivante :
+
+```
+SCRIPT_NAME=/andi/api gunicorn -k andi.webservice.workers.UvicornWorker [autres options] \
+  andi.webservice.asgi:app
+```
+
+Vous pouvez naviguer à `http://schtroumpf.cdc.fr/andi/api/docs` pour vérifier les URLs générées.

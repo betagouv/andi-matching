@@ -33,7 +33,7 @@ UVICORN_OPTIONS = {
 # python -c "import fastapi; help(fastapi.FastAPI)"
 FASTAPI_OPTIONS = {
     "debug": DEBUG,
-    "root_path": "/"
+    "root_path": os.getenv("SCRIPT_NAME", "/")
 }
 
 # Un nombre entier pour limiter les résultats de /match

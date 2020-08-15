@@ -1,5 +1,10 @@
 ## Historique des versions
 
+### 1.7.0.dev4 - 16 aout 2020
+
+- Support de la variable d'environnement SCRIPT_NAME nécessaire pour la publication Apache ->
+  Unicorn -> Uvicorn -> Appli FastAPI. Et documentation associée.
+
 ### 1.7.0.dev3 - 10 aout 2020
 
 - pylint : 10/10
