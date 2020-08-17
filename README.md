@@ -463,6 +463,8 @@ Il est supposé que vous utilisez un VirtualHost. Corrigez le cas échéant.
 </VirtualHost>
 ```
 
+**Options de lancement de Gunicorn**
+
 Une fois les différentes options de configurations pour `andi-matching` mises en place, vous pouvez
 lancer le serveur Gunicorn avec la commande suivante :
 
