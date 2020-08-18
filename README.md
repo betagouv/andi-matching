@@ -178,7 +178,7 @@ En fournissant les **variables d'environnement** suivantes :
 
 **`SCRIPT_NAME`** (obligatoire en production, inutile en développement)
 > Les serveurs WSGI comme Gunicorn employé dans le chaîne de publication de `andi-matching` sont
-> sensées tenir compte d'un certain nombre de [variables d'environnement définies
+> sensés tenir compte d'un certain nombre de [variables d'environnement définies
 > ici](https://www.python.org/dev/peps/pep-3333/#environ-variables). Lorsqu'on souhaite publier
 > derrière un proxy un service ailleurs qu'à la racine du site (exemple
 > http://schtroumpf.csc.fr/andi/api), il faut placer le path dans la variable d'environnement
@@ -422,7 +422,7 @@ Lorsqu'on publie une application ASGI (comme FastAPI) derrière une telle chaîn
 l'application n'est pas publiée à la racine du site (http://schtroumpf.csc.fr/) mais dans un path
 dédié (par exemple http://schtroumpf.cdc.fr/andi/api/), il est nécessaire de faire savoir aux
 applications Gunicorn, Uvicorn et FastAPI (andi-matching en l'occurrence) cette particularité en
-plaçant dans la variable d'environnement `SCRIPT_NAME` sous peine de voir la génération d'UrLs
+plaçant dans la variable d'environnement `SCRIPT_NAME` sous peine de voir la génération d'URLs
 faussée.
 
 Hélas, le worker standard d'Uvicorn pour Gunicorn ne respecte ni ne transmet cette variable
