@@ -348,13 +348,23 @@ tox -e py37
 Foire Aux Questions diverses auxquelles les réponses sont fournies au fil de l'eau, sans ordre autre
 que chronologique.
 
+## APIs Internet consommées par andi-matching
+
+- Géocodage de l'adresse du visiteur, [documenté ici](https://geo.api.gouv.fr/adresse) :
+  https://api-adresse.data.gouv.fr/search/?q=8+bd+du+port
+
 ## Comment produire un fichier Swagger de spécification de l'API ?
 
 Le framework FastAPI sur lequel l'application se base fournit les spécifications d'API au format
 OpenAPI 3.0.x à la date de rédaction de cette note. Les opérateurs de production de la CDC ont
 besoin de cette spécification à l'ancien format OpenAPI 2.0 (alias Swagger).
 
-L'outil de conversion [api-spec-converter](https://www.npmjs.com/package/api-spec-converter) permet ceci.
+Pour obtenir le document OpenAPI v3 d'andi-matching, il suffit de lancer le serveur, et de prolonger
+l'URL racine de publication du service par `/openapi.json`. Sur le serveur d'un poste de
+développement, il suffit de naviguer à l'adresse http://localhost:5000/openapi.json.
+
+L'outil de conversion [api-spec-converter](https://www.npmjs.com/package/api-spec-converter) permet
+ceci.
 
 Exemple d'utilisation :
 
