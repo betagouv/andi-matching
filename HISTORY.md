@@ -1,5 +1,9 @@
 ## Historique des versions
 
+### Branche feature/api-versioning
+
+- Informations plus complètes dans le path "/" (environnement)
+
 ### 1.7.0.dev4 - 16 aout 2020
 
 - Support de la variable d'environnement SCRIPT_NAME nécessaire pour la publication Apache ->

@@ -59,6 +59,14 @@ def root(request: Request):
         base_url += "/"
 
     absolute_url = functools.partial(urllib.parse.urljoin, base_url)
+
+    varnames = ("AN4_ROME_SUGGEST_INDEX_DIR", "AN4_NO_DB_CONNECTION", "HTTP_PROXY", "HTTPS_PROXY",
+                "NO_PROXY", "SSL_CERT_FILE", "SCRIPT_NAME")
+    environment = {name: os.getenv(name, "<not set>") for name in varnames}
+    for name in ("HTTP_PROXY", "HTTPS_PROXY"):
+        value = environment[name]
+        if value != "<not set>":
+            environment[name] = censored_url(value)
     return {
         'all_systems': 'nominal',
         'timestamp': now,
@@ -68,7 +76,8 @@ def root(request: Request):
         "configuration": os.getenv(CONFIG_FILE_ENNVAR, "<default>"),
         "database": censored_url(config.PG_CONNECTIONS_POOL["dsn"]),
         "software_version": __version__,
-        "base_url": base_url,
-        "doc_urls": [absolute_url("docs"), absolute_url("redoc")],
-        "openapi_url": absolute_url("openapi.json")
+        "base_url": censored_url(base_url),
+        "doc_urls": [censored_url(absolute_url("docs")), censored_url(absolute_url("redoc"))],
+        "openapi_url": censored_url(absolute_url("openapi.json")),
+        "environment": environment
     }

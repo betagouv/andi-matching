@@ -26,8 +26,8 @@ def test_root_route(client):
     response = client.get("/")
     assert response.status_code == 200
     response_body = response.json()
-    assert len(response_body) == 11
+    assert len(response_body) == 12
     assert set(response_body) == {
         "all_systems", "timestamp", "start_time", "uptime", "api_version", "configuration",
-        "database", "software_version", "base_url", "doc_urls", "openapi_url"
+        "database", "software_version", "base_url", "doc_urls", "openapi_url", "environment"
     }
