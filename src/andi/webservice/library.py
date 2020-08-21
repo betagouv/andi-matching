@@ -3,23 +3,21 @@ Utilitaires divers et inclassables de l'appli
 """
 from __future__ import annotations
 
-import asyncio
-import concurrent.futures
+import contextvars
 import datetime
 import functools
 import logging
 import string
+import types
 import uuid
-from typing import List, Dict, Union, Any, AnyStr, Callable, TYPE_CHECKING
+from typing import List, Dict, Union, Any, AnyStr, TYPE_CHECKING
 
 import aiohttp
 import pytz
 import unidecode
 
-from .hardsettings import AWAITABLE_BLOCKING_POOL_MAX_THREADS
-
 if TYPE_CHECKING:
-    from .schemas.match import DistanceCriterion, RomeCodesCriterion
+    from .schemas.entreprises import DistanceCriterion, RomeCodesCriterion
     from .schemas.common import MetaModel  # pylint: disable=cyclic-import
 
 logger = logging.getLogger(__name__)
@@ -139,41 +137,12 @@ def is_valid_uuid(val: AnyStr):
         return False
 
 
-def get_trace_obj(query: MetaModel) -> Dict[str, Any]:
-    return {
-        '_query_id': query.query_id,
-        '_session_id': query.session_id,
-        '_trace': 'not_implemented_yet',
-    }
+# Exposition d'une namespace pseudo-global sur le cycle de vie d'un request
+# Voir http://glenfant.github.io/flask-g-object-for-fastapi.html
+
+request_global = contextvars.ContextVar("request_global",
+                                        default=types.SimpleNamespace())
 
 
-# Running a blocking callable inside a coroutine
-# ==============================================
-
-# Use the better suited pool (see doc of ``concurrent.future```)
-
-_awaitable_blocking_pool = concurrent.futures.ThreadPoolExecutor(
-    max_workers=AWAITABLE_BLOCKING_POOL_MAX_THREADS
-)
-
-
-# awaitable_blocking_pool = concurrent.futures.ProcessPoolExecutor()
-# awaitable_blocking_pool = None  # Default asyncio pool
-
-
-async def awaitable_blocking(func: Callable, *args: Any, **kwargs: Any) -> Any:
-    """
-    Enable to "await" a blocking I/O callable from an asyncio coroutine
-
-    Args:
-        func: The regular blocking callable (function, method)
-        args: Positional arguments transmitted to ``func``
-        kwargs: Keyword arguments transmitted to ``func``
-
-    Returns:
-        Anything that's returned by ``func``
-    """
-    loop = asyncio.get_running_loop()
-    new_func = functools.partial(func, *args, **kwargs)
-    result = await loop.run_in_executor(_awaitable_blocking_pool, new_func)
-    return result
+def g():
+    return request_global.get()

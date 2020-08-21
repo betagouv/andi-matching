@@ -35,7 +35,6 @@ async def fake_factory():
         async def release(self, connection):
             logger.info(f"releasing {connection}")
             self._pool.insert(0, connection)
-            pass
 
     return FakePool()
 

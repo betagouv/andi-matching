@@ -3,14 +3,14 @@
 """
 import logging
 import pprint
+from typing import List
 
 from fastapi import APIRouter, Depends
 
 from .. import dbpool
-from ..hardsettings import API_VERSION
-from ..library import get_trace_obj, get_parameters, utc_now
-from ..match import run_profile_async
-from ..schemas.match import MatchQueryModel, MatchResponseModel
+from ..entreprises import run_profile_async
+from ..library import get_parameters
+from ..schemas.entreprises import EntreprisesQueryModel, EntrepriseResponse
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -18,18 +18,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/match", response_model=MatchResponseModel,
-             operation_id="rechercherSocietes",
-             summary="Recherche de sociétés",
-             description="Recherche de sociétés à proximité pour une immersion.",
-             tags=["public"])
-async def matching(query: MatchQueryModel, db=Depends(dbpool.get)):
+@router.get("/entreprises", response_model=List[EntrepriseResponse],
+            operation_id="rechercherEntreprises",
+            summary="Recherche entreprises / établissements",
+            description="Recherche d'entreprises et établissements à proximité pour une immersion.")
+async def get_entreprises(query: EntreprisesQueryModel, db=Depends(dbpool.get)):
     """
-    Matching endpoint:
+    Entreprises endpoint:
     Web API for ANDi internal matching algorithm.
     """
     logger.debug(query)
-    trace = get_trace_obj(query)
     lat, lon = await query.address.get_coord()
     params = get_parameters(query.criteria)
     logger.debug('Query params: %s', params)
@@ -37,19 +35,13 @@ async def matching(query: MatchQueryModel, db=Depends(dbpool.get)):
                                        **params)
     logger.debug('raw responses:')
     logger.debug(pprint.pformat(raw_data[:4]))
-    data = await make_data(raw_data)
+    data = make_data(raw_data)
     logger.debug('clean responses:')
     logger.debug(pprint.pformat(data[:4]))
-
-    return {
-        '_v': API_VERSION,
-        '_timestamp': utc_now(),
-        'data': data,
-        **trace,
-    }
+    return data
 
 
-async def make_data(responses=None):
+def make_data(responses=None):
     """
     Create response data object:
 
@@ -76,7 +68,7 @@ async def make_data(responses=None):
         'departement': resp['departement'],
         'phonenumber': resp['phonenumber'],
         'city': resp['commune'],
-        'coords': {'lat': 93, 'lon': 18},
+        'coords': {'lat': resp["lat"], 'lon': resp["lon"]},
         'size': resp['taille'],
         'naf': resp['naf'],
         'siret': resp['siret'],

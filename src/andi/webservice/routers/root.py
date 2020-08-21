@@ -9,7 +9,7 @@ import urllib.parse
 from fastapi import APIRouter, Request
 
 from .. import __version__
-from ..hardsettings import START_TIME, API_VERSION
+from ..hardsettings import START_TIME, ALLOWED_API_VERSIONS
 from ..library import utc_now
 from ..settings import CONFIG_FILE_ENNVAR, config
 
@@ -72,7 +72,7 @@ def root(request: Request):
         'timestamp': now,
         'start_time': START_TIME,
         'uptime': f'{delta_s} seconds | {divmod(delta_s, 60)[0]} minutes | {divmod(delta_s, 86400)[0]} days',
-        'api_version': API_VERSION,
+        'api_versions': sorted(list(ALLOWED_API_VERSIONS)),
         "configuration": os.getenv(CONFIG_FILE_ENNVAR, "<default>"),
         "database": censored_url(config.PG_CONNECTIONS_POOL["dsn"]),
         "software_version": __version__,

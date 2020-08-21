@@ -5,7 +5,7 @@
 
 ## Mise en conformité normes CDC des APIs
 
-- versionner l'API, ce qui n'est pas fait, pour exposer http://le-serveur.cdc.fr/v1/endpoint" (...)
+- versionner l'API, ce qui n'est pas fait, pour exposer http://le-serveur.cdc.fr/x.y/endpoint" (...)
   et donc réorganiser le code pour permettre des "smooth upgrade" et des alias plus faciles.
 
 - le nommage n'est pas conforme, donc je propose, en conformité avec les diapos 22 et 23 :

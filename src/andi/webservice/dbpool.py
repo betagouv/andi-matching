@@ -63,3 +63,20 @@ class PoolManager:
 
 # DBPool object accessor
 manager = PoolManager()
+
+
+async def tests_pool_factory():
+    class TestsPool:
+        def __init__(self):
+            self._pool = [1, 2, 3]
+
+        async def acquire(self):
+            connection = self._pool.pop()
+            logger.info(f"acquiring {connection}")
+            return connection
+
+        async def release(self, connection):
+            logger.info(f"releasing {connection}")
+            self._pool.insert(0, connection)
+
+    return TestsPool()

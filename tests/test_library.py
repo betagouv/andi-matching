@@ -1,12 +1,11 @@
 """
 Tests de andi.webservice.library
 """
-import functools
 import uuid
 
 import andi.webservice.library as target
 import pytest
-from andi.webservice.schemas.match import DistanceCriterion, RomeCodesCriterion
+from andi.webservice.schemas.entreprises import DistanceCriterion, RomeCodesCriterion
 
 from .conftest import skip_connected
 
@@ -65,30 +64,37 @@ def test_is_valid_uuid():
     assert target.is_valid_uuid(str(uuid.uuid4()))
 
 
-@pytest.mark.asyncio
-async def test_awaitable_blocking():
-    def simple_blocking(param1, param2=2):
-        return param1 + param2
+def test_sync_g(client, app):
+    @app.get("/1.0/schtroumpf")
+    def schtroumpf():
+        return target.g().api_version_info
 
-    result = await target.awaitable_blocking(simple_blocking, 2)
-    assert result == 4
+    response = client.get("/1.0/schtroumpf")
+    assert response.status_code == 200
+    assert response.json() == [1, 0]
 
-    result = await target.awaitable_blocking(simple_blocking, 2, param2=5)
-    assert result == 7
 
-    # Avec functools.partial
-    new_blocking = functools.partial(simple_blocking, 2, 8)
-    result = await target.awaitable_blocking(new_blocking)
-    assert result == 10
+def test_async_g(client, app):
+    @app.get("/1.0/schtroumpf")
+    async def schtroumpf():
+        return target.g().api_version_info
 
-    # Avec une méthode de classe
-    class Foo:
-        def __init__(self, value):
-            self.value = value
+    response = client.get("/1.0/schtroumpf")
+    assert response.status_code == 200
+    assert response.json() == [1, 0]
 
-        def doit(self, value):
-            return self.value + value
 
-    f = Foo(5)
-    result = await target.awaitable_blocking(f.doit, 5)
-    assert result == 10
+def test_noversion_g(client, app):
+    @app.get("/schtroumpf")
+    def schtroumpf():
+        plouf()
+        return {"a": target.g().api_version_info, "b": target.g().value}
+
+    def plouf():
+        target.g().value = 10
+
+    response = client.get("/schtroumpf")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["a"] is None
+    assert result["b"] == 10

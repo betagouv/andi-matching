@@ -11,20 +11,16 @@ Rome returned by LaBonneBoite:
    }
 ```
 """
-from typing import List
 
 from pydantic import BaseModel, Field
 
-from .common import MetaModel, get_model_example
 
-
-class RomeQueryModel(MetaModel):
+class RomesQueryModel(BaseModel):
     needle: str = Field(..., description="Search string")
 
     class Config:
         schema_extra = {
             "example": {
-                **get_model_example(MetaModel),
                 "needle": "boulanger"
             }
         }
@@ -45,23 +41,5 @@ class RomeSuggestion(BaseModel):
                 "value": "chirurgien-dentiste / chirurgienne-dentiste conseil",
                 "occupation": "chirurgien-dentiste-chirurgienne-dentiste-conseil",
                 "score": "11.56565858542299"
-            }
-        }
-
-
-class RomeResponseModel(MetaModel):
-    """
-    Modèle des données sortantes de l'api suggestion code ROME
-    Calqué sur l'API de La Bonne Boîte
-    """
-    data: List[RomeSuggestion] = Field([], description="List of ROME suggestions")
-
-    class Config:
-        schema_extra = {
-            "example": {
-                **get_model_example(MetaModel),
-                "data": [{
-                    **get_model_example(RomeSuggestion)
-                }]
             }
         }

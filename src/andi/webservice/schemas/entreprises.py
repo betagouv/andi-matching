@@ -3,31 +3,23 @@ Modèle des données en entrée pour le service matching
 
 Prototype convenu:
 ```json
-{
-    '_v': 1,
-    '_timestamp': 123125412,
-    '_query_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
-    '_session_id': 'efb7afcf-836b-4029-a3ce-f7c0b4b3499b',
-    '_trace': 'aweofuiiu9274083',
-    'data':
-        [
-            {
-                'id': '12',
-                'name': 'Pains d\'Amandine',
-                'address': 'ADDRESSE',
-                'departement': '29'
-                'city': 'Cergy',
-                'coords': {'lat': 93.123, 'lon': 83.451},
-                'size': 'pme',
-                'naf': '7711A',
-                'siret': '21398102938',
-                'distance': 54,
-                'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
-                'score': 53,
-                'activity': 'Boulangerie',
-            },
-        ]
-}
+[
+    {
+        'id': '12',
+        'name': 'Pains d\'Amandine',
+        'address': 'ADDRESSE',
+        'departement': '29'
+        'city': 'Cergy',
+        'coords': {'lat': 93.123, 'lon': 83.451},
+        'size': 'pme',
+        'naf': '7711A',
+        'siret': '21398102938',
+        'distance': 54,
+        'scoring': {'geo': 3, 'size': 4, 'contact': 2, 'pmsmp': 3, 'naf': 5},
+        'score': 53,
+        'activity': 'Boulangerie',
+    },
+]
 ```
 """
 import logging
@@ -37,7 +29,7 @@ from typing import List, Union, Tuple
 
 from pydantic import BaseModel, Field, Json, PositiveInt
 
-from .common import MetaModel, get_model_example
+from .common import get_model_example
 from ..library import geo_code_query
 
 logger = logging.getLogger(__name__)
@@ -126,7 +118,7 @@ class RomeCodesCriterion(Criterion):
         }
 
 
-class MatchQueryModel(MetaModel):
+class EntreprisesQueryModel(BaseModel):
     """
     Modèle de validation des requêtes de l'outil de matching
     """
@@ -139,7 +131,6 @@ class MatchQueryModel(MetaModel):
     class Config:
         schema_extra = {
             'example': {
-                **get_model_example(MetaModel),
                 'address': {
                     **get_model_example(Address)
                 },
@@ -197,7 +188,7 @@ class Scoring(BaseModel):
         }
 
 
-class ResponseData(BaseModel):
+class EntrepriseResponse(BaseModel):
     id: str
     name: str
     address: str
@@ -238,21 +229,3 @@ class ResponseData(BaseModel):
                 "size": "20-49"
             }
         }
-
-
-class MatchResponseModel(MetaModel):
-    """
-    Modèle de validation des résultats de l'outil de matching
-    """
-    trace: str = Field(..., alias='_trace', description="Trace ID")
-    data: List[ResponseData] = Field(..., description="response data")
-
-    class Config:
-        schema_extra = {
-            'example': {
-                **get_model_example(MetaModel),
-                "_trace": "not_implemented_yet",
-                "data": [{
-                    **get_model_example(ResponseData)
-                }]
-            }}

@@ -1,15 +1,11 @@
 import logging
-import uuid
-from datetime import datetime
-from typing import Union
+from typing import List
 
+from asgiref.sync import sync_to_async
 from fastapi import APIRouter
-from pydantic.types import PositiveInt
 
-from ..hardsettings import API_VERSION
-from ..library import get_trace_obj, utc_now, awaitable_blocking
-from ..romesuggest import SUGGEST_STATE, match as rome_suggest
-from ..schemas.romesuggest import RomeQueryModel, RomeResponseModel
+from ..romes import SUGGEST_STATE, match as rome_suggest
+from ..schemas.romes import RomesQueryModel, RomeSuggestion
 from ..settings import config
 
 logger = logging.getLogger(__name__)
@@ -17,37 +13,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/rome_suggest", response_model=RomeResponseModel,
+@router.get("/romes", response_model=List[RomeSuggestion],
             operation_id="rechercherROMEs",
             summary="Suggestions ROME",
-            description="Suggère des codes ROME et métiers en fonction d'un pattern de nom de métier",
-            tags=["public"])
-async def api_rome_suggest(sid: Union[uuid.UUID, str] = "", q: str = "", _v: PositiveInt = 1,
-                           _timestamp: datetime = False):
+            description="Suggère des codes ROME et métiers en fonction d'un pattern de nom de métier")
+async def api_rome_suggest(q: str = ""):
     """
     Rome suggestion endpoint:
     Query rome code suggestions according to input string,
     only returning top 15 results.
     """
     logger.debug('received query %s', [q])
-    query_id = uuid.uuid4()
-    raw_query = {
-        '_v': _v,
-        '_timestamp': _timestamp or utc_now(),
-        '_query_id': query_id,
-        '_session_id': sid,
-        'needle': q
-    }
-    logger.debug('Query params: %s', raw_query)
-    query = RomeQueryModel(**raw_query)
+    query = RomesQueryModel(needle=q)
 
-    trace = get_trace_obj(query)
-    logger.debug('Running query...')
-    rome_list = await awaitable_blocking(rome_suggest, query.needle, SUGGEST_STATE)
+    rome_list = await sync_to_async(rome_suggest)(query.needle, SUGGEST_STATE)
     logger.debug('Obtained %s results', len(rome_list))
-    return {
-        '_v': API_VERSION,
-        '_timestamp': utc_now(),
-        'data': rome_list[:config.ROME_SUGGEST_LIMIT],
-        **trace,
-    }
+    return rome_list[:config.ROME_SUGGEST_LIMIT]
