@@ -165,7 +165,7 @@ expected = [
 
 def test_entreprises_route(client, mocker):
     target.conn_fetch = mocker.Mock(side_effect=coroutine(lambda *args: expected_raw))
-    response = client.get("/1.0/entreprises", json=query)
+    response = client.post("/1.0/entreprises", json=query)
     assert response.status_code == 200
     result = response.json()
     assert result == expected

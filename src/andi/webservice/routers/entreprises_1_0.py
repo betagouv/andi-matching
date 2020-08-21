@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/entreprises", response_model=List[EntrepriseResponse],
+@router.post("/entreprises", response_model=List[EntrepriseResponse],
             operation_id="rechercherEntreprises",
             summary="Recherche entreprises / établissements",
             description="Recherche d'entreprises et établissements à proximité pour une immersion.")

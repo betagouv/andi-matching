@@ -7,7 +7,7 @@
 - Suppression de l'échange de métadonnées (doublon de l'utilisation de Matomo)
 - Vocabulaire et méthodes conformes aux normes ICDC
   - `GET /romme_suggest` devient `GET /1.0/romes` (opération `rechercherROMEs`)
-  - `POST /match` devient `GET /1.0/entreprises` (opération `rechercherEntreprises`)
+  - `POST /match` devient `POST /1.0/entreprises` (opération `rechercherEntreprises`)
   - **Attention** aux changement de signature des méthodes (voir le OpenAPI / Swagger)
 - Ajout de la pseudo-globale de cycle de request `andi.webservice.library.g()` comme décrit dans
   [cet article](http://glenfant.github.io/flask-g-object-for-fastapi.html).
