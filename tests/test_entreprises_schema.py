@@ -1,6 +1,6 @@
 import json
 
-import andi.webservice.schemas.match as target
+import andi.webservice.schemas.entreprises as target
 import pytest
 
 from .conftest import skip_connected

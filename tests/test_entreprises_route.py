@@ -176,7 +176,7 @@ expected = {'_query_id': '6e2993cc-e87b-4de1-a53b-8df893bba5ef',
 
 def test_match_route(client, mocker):
     target.conn_fetch = mocker.Mock(side_effect=coroutine(lambda *args: expected_raw))
-    response = client.post("/match", json=query)
+    response = client.get("/1.0/entreprises", json=query)
     assert response.status_code == 200
     result = response.json()
     del result["_timestamp"]  # On ne peut pas deviner...
