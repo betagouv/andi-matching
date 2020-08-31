@@ -1,97 +1,94 @@
-import json
-import pathlib
+"""
+Tests de andi.webservice.library
+"""
+import functools
+import uuid
 
-import pandas as pd
+import andi.webservice.library as target
 import pytest
+from andi.webservice.schemas.match import DistanceCriterion, RomeCodesCriterion
 
-import andi.webservice
-import andi.webservice.library as library
-
-"""
-Expected geo api output:
-{
-    "type": "FeatureCollection",
-    "version": "draft",
-    "features": [
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [
-                    2.331544,
-                    48.849392
-                ]
-            },
-            "properties": {
-                "label": "8 Rue Honor\u00e9 Chevalier 75006 Paris",
-                "score": 0.9640258493210577,
-                "housenumber": "8",
-                "id": "75106_4647_00008",
-                "type": "housenumber",
-                "name": "8 Rue Honor\u00e9 Chevalier",
-                "postcode": "75006",
-                "citycode": "75106",
-                "x": 650946.7,
-                "y": 6861246.38,
-                "city": "Paris",
-                "district": "Paris 6e Arrondissement",
-                "context": "75, Paris, \u00cele-de-France",
-                "importance": 0.6042843425316358,
-                "street": "Rue Honor\u00e9 Chevalier"
-            }
-        }
-    ],
-    "attribution": "BAN",
-    "licence": "ODbL 1.0",
-    "query": "8 rue Honor\u00e9 Chevalier, Paris",
-    "limit": 5
-}
-"""
+from .conftest import skip_connected
 
 
+@skip_connected
 @pytest.mark.asyncio
 async def test_string_query():
-    out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
+    out = await target.geo_code_query("8 rue Honoré Chevalier, Paris")
     assert out is not None
     assert isinstance(out, dict)
 
 
-@pytest.mark.asyncio
-async def test_get_codes():
-    out = await library.geo_code_query("8 rue Honoré Chevalier, Paris")
-    lat, lon = library.get_codes(out)
-    assert lat == 48.849392
-    assert lon == 2.331544
+def test_get_parameters():
+    criteria = [
+        RomeCodesCriterion.parse_obj({
+            "priority": 5,
+            "name": "rome_codes",
+            "rome_list": [
+                {
+                    "id": "A1202",
+                    "include": True,
+                    "exclude": False
+                },
+                {
+                    "id": "A1111",
+                    "include": False,
+                    "exclude": False
+                }
+
+            ],
+            "exclude_naf": []
+        }),
+        DistanceCriterion.parse_obj({
+            "priority": 2,
+            "name": "distance",
+            "distance_km": 15
+        })
+    ]
+    result = target.get_parameters(criteria)
+    assert result == {'includes': [], 'excludes': [], 'sizes': ['pme'],
+                      'multipliers': {'fg': 2, 'fn': 5, 'ft': 2, 'fw': 4, 'fc': 3}, 'romes': ['A1202'],
+                      'max_distance': 15}
+
+
+def test_normalize():
+    text = "Quelques mots  ont été normalizés."
+    expected = "quelques mots ont ete normalizes"
+    assert target.normalize(text) == expected
+
+
+def test_is_valid_uuid():
+    # N'est pas un UUID
+    assert not target.is_valid_uuid("5678")
+
+    # Est un UUID valide
+    assert target.is_valid_uuid(str(uuid.uuid4()))
 
 
 @pytest.mark.asyncio
-async def test_get_rome_suggestions():
-    out = await library.rome_list_query("phil")
-    print(json.dumps(out, indent=2))
-    assert out is not None
-    assert len(out) == 4
-    found = False
-    for res in out:
-        if res.get('id') == 'K2401':
-            found = True
-    assert found
+async def test_awaitable_blocking():
+    def simple_blocking(param1, param2=2):
+        return param1 + param2
 
+    result = await target.awaitable_blocking(simple_blocking, 2)
+    assert result == 4
 
-def test_get_rome_suggest():
-    referentiels_dir = pathlib.Path(andi.webservice.__file__).resolve().parent / "referentiels"
-    ROME_DF = pd.read_csv(referentiels_dir / "rome_lbb.csv")
-    ROME_DF.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
-    OGR_DF = pd.read_csv(referentiels_dir / "ogr_lbb.csv")
-    OGR_DF.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
-    ROME_DF['stack'] = ROME_DF.apply(lambda x: library.normalize(x['label']), axis=1)
-    OGR_DF['stack'] = OGR_DF.apply(lambda x: library.normalize(x['label']), axis=1)
+    result = await target.awaitable_blocking(simple_blocking, 2, param2=5)
+    assert result == 7
 
-    out = library.rome_suggest_v1("phil", (ROME_DF, OGR_DF))
-    print(json.dumps(out, indent=2))
-    assert out is not None
-    assert len(out) == 4
-    found = False
-    for res in out:
-        if res.get('id') == 'K2401':
-            found = True
-    assert found
+    # Avec functools.partial
+    new_blocking = functools.partial(simple_blocking, 2, 8)
+    result = await target.awaitable_blocking(new_blocking)
+    assert result == 10
+
+    # Avec une méthode de classe
+    class Foo:
+        def __init__(self, value):
+            self.value = value
+
+        def doit(self, value):
+            return self.value + value
+
+    f = Foo(5)
+    result = await target.awaitable_blocking(f.doit, 5)
+    assert result == 10

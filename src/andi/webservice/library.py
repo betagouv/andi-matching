@@ -1,20 +1,31 @@
-import json
+"""
+Utilitaires divers et inclassables de l'appli
+"""
+from __future__ import annotations
+
+import asyncio
+import concurrent.futures
+import datetime
+import functools
 import logging
-import os
-import re
 import string
+import uuid
+from typing import List, Dict, Union, Any, AnyStr, Callable, TYPE_CHECKING
 
 import aiohttp
-import pandas as pd
+import pytz
 import unidecode
-from fuzzywuzzy import fuzz
+
+from .hardsettings import AWAITABLE_BLOCKING_POOL_MAX_THREADS
+
+if TYPE_CHECKING:
+    from .schemas.match import DistanceCriterion, RomeCodesCriterion
+    from .schemas.common import MetaModel  # pylint: disable=cyclic-import
 
 logger = logging.getLogger(__name__)
 
 
-# ############################# Geo-coding functions
-# ##################################################
-async def geo_code_query(query):
+async def geo_code_query(query: str) -> dict:
     """
     Query open geo-coding API from geo.api.gouv.fr
     Return spec: https://github.com/geocoders/geocodejson-spec
@@ -23,168 +34,146 @@ async def geo_code_query(query):
     params = {
         'q': query,
     }
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, params=params) as response:
             return await response.json()
 
 
-def get_codes(data):
-    # geo-coding standard does not respect lat / lon order
-    lon, lat = data['features'][0]['geometry']['coordinates']
-    return lat, lon
-
-
-# ##################### Rome suggesting functions V0
-# ##################################################
-# OBSOLETE
-async def rome_list_query(query):
-    """
-    DEPRECATED
-    Query rome suggestion API from labonneboite
-    Example URL: https://labonneboite.pole-emploi.fr/suggest_job_labels?term=phil
-    """
-    url = 'https://labonneboite.pole-emploi.fr/suggest_job_labels'
-    params = {
-        'term': query,
+DEFAULT_MATCHING_PARAMS = {
+    'includes': [],
+    'excludes': [],
+    'sizes': ['pme'],
+    'multipliers': {
+        'fg': 1,  # Geo
+        'fn': 5,  # Naf/Rome
+        'ft': 2,  # Size
+        'fw': 4,  # Welcome
+        'fc': 3,  # Contact
     }
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            logger.debug('Querying LaBonneBoite...')
-            response = await response.text()
-            return json.loads(response)
-            # FIXME: API response content-type is not json
-            # return await response.json()
+}
 
 
-# ##################### Rome suggesting functions V1
-# ##################################################
-# OBSOLETE
-# See lib_rome_suggest_v2
-def get_dataframes_v1():
-    logger.info('Compiling dataframe references')
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    rome_df = pd.read_csv(f'{current_dir}/referentiels/rome_lbb.csv')
-    rome_df.columns = ['rome', 'rome_1', 'rome_2', 'rome_3', 'label', 'slug']
-    ogr_df = pd.read_csv(f'{current_dir}/referentiels/ogr_lbb.csv')
-    ogr_df.columns = ['code', 'rome_1', 'rome_2', 'rome_3', 'label', 'rome']
-    rome_df['stack'] = rome_df.apply(lambda x: normalize(x['label']), axis=1)
-    ogr_df['stack'] = ogr_df.apply(lambda x: normalize(x['label']), axis=1)
-    logger.info('Dataframe compilation done')
-    return (rome_df, ogr_df)
+class CriterionParser:
+    @staticmethod
+    def distance(criterion: DistanceCriterion, acc):
+        acc['max_distance'] = criterion.distance_km
+        acc['multipliers']['fg'] = criterion.priority
+        return acc
+
+    @staticmethod
+    def rome_codes(criterion: RomeCodesCriterion, acc):
+        # FIXME add rome include / exclude rule
+        rome_codes = [rome.id for rome in criterion.rome_list if rome.include]
+        acc['romes'] = rome_codes
+        acc['multipliers']['fn'] = criterion.priority
+        return acc
 
 
-def score_build(query, match):
+def parse_param(accumulator, criterion: Union[DistanceCriterion, RomeCodesCriterion]):
+    res = getattr(CriterionParser, criterion.name)(criterion, accumulator)
+    return res
+
+
+def get_parameters(criteria: List[Union[DistanceCriterion, RomeCodesCriterion]]) \
+        -> dict:
     """
-    Return matching score used to order search results
-    fuzzywuzzy ratio calculates score on 100: we reduce that to 5 with 1 decimal
+    Construction des critères de recherche d'emploi pour la requête
+    Args:
+        criteria: Liste de critères ROME et distance (généralement deux)
+
+    Returns:
+        Dictionnaire de paramètres
     """
-    ratio = fuzz.ratio(query, match)
-    return round(ratio / 20, 1)
+    return functools.reduce(parse_param, criteria, DEFAULT_MATCHING_PARAMS)
 
 
-def normalize(txt):
+def normalize(text: str, minimum_size=3) -> str:
     """
     Generic standaridzed text normalizing function
+    Args:
+        text: Unicode text to be normalized
+        minimum_size: discard words below this size
+    Returns:
+        normalized text
+    Examples:
+        >>> normalize("le TexTe  Présenté")
+        'texte presente'
     """
     # Remove punctuation
     table = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
-    txt = txt.translate(table)
+    text = text.translate(table)
 
     # Lowercase
-    txt = txt.lower()
+    text = text.lower()
 
     # Remove short letter groups
-    txt = txt.split()
-    txt = [t for t in txt if len(t) >= 3]
-    txt = ' '.join(txt)
+    text = text.split()
+    text = [t for t in text if len(t) >= minimum_size]
+    text = ' '.join(text)
 
     # Accent folding
-    txt = unidecode.unidecode(txt)
+    text = unidecode.unidecode(text)
+    return text
 
-    return txt
 
-
-def words_get(raw_query):
+def words_get(raw_query: str) -> List[str]:
     if not raw_query:
         return []
     query = normalize(raw_query)
     return query.split()
 
 
-def result_build(score, rome, rome_label, rome_slug, ogr_label=None):
-    if ogr_label:
-        label = f"{rome_label} ({ogr_label}, ...)"
-    else:
-        label = rome_label
+def utc_now() -> datetime.datetime:
+    """
+    Returns:
+        Maintenant en UTC
+    """
+    return datetime.datetime.now(tz=pytz.utc)
 
+
+def is_valid_uuid(val: AnyStr):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
+
+
+def get_trace_obj(query: MetaModel) -> Dict[str, Any]:
     return {
-        'id': rome,
-        'label': label,
-        'value': label,
-        'occupation': rome_slug,
-        'score': score
+        '_query_id': query.query_id,
+        '_session_id': query.session_id,
+        '_trace': 'not_implemented_yet',
     }
 
 
-def rome_suggest_v1(query, state):
-    rome_df, ogr_df = state
-    results = {}
+# Running a blocking callable inside a coroutine
+# ==============================================
 
-    # Unelegant solution to uncontroled queries
-    needle = normalize(re.sub(r'\([^\)]*\)', '', query).strip())
+# Use the better suited pool (see doc of ``concurrent.future```)
 
-    check = rome_df[rome_df['stack'] == needle]
-    if not check.empty:
-        # Full title match, only one result possible
-        results[check.iloc[0]['rome']] = result_build(
-            100,
-            check.iloc[0]['rome'],
-            check.iloc[0]['label'],
-            check.iloc[0]['slug']
-        )
-        return list(results.values())
+_awaitable_blocking_pool = concurrent.futures.ThreadPoolExecutor(
+    max_workers=AWAITABLE_BLOCKING_POOL_MAX_THREADS
+)
 
-    check = rome_df[rome_df['stack'].str.contains(needle)]
-    if not check.empty:
-        results[check.iloc[0]['rome']] = result_build(
-            score_build(needle, check.iloc[0]['stack']),
-            check.iloc[0]['rome'],
-            check.iloc[0]['label'],
-            check.iloc[0]['slug']
-        )
 
-    words = words_get(query)
-    if len(words) == 0:
-        return []
-    rome_raw_matches = []
-    ogr_raw_matches = []
-    # Only using first 5 words
-    for word in words[:5]:
-        rome_raw_matches.append(rome_df[rome_df['stack'].str.contains(word)])
-        ogr_raw_matches.append(ogr_df[ogr_df['stack'].str.contains(word)])
-    rome_matches = pd.concat(rome_raw_matches)
-    ogr_matches = pd.concat(ogr_raw_matches)
+# awaitable_blocking_pool = concurrent.futures.ProcessPoolExecutor()
+# awaitable_blocking_pool = None  # Default asyncio pool
 
-    for _i, ogr_row in ogr_matches.iterrows():
-        rome = ogr_row['rome']
-        ogr_romes = rome_df[rome_df['rome'] == rome]
-        for _j, rome_row in ogr_romes.iterrows():
-            results[rome] = result_build(
-                score_build(query, ogr_row['stack']),
-                rome,
-                rome_row['label'],
-                rome_row['slug'],
-                ogr_row['label']
-            )
 
-    for _i, rome_row in rome_matches.iterrows():
-        results[rome_row['rome']] = result_build(
-            score_build(query, rome_row['stack']),
-            rome_row['rome'],
-            rome_row['label'],
-            rome_row['slug']
-        )
-    return sorted(list(results.values()), key=lambda e: e['score'], reverse=True)
+async def awaitable_blocking(func: Callable, *args: Any, **kwargs: Any) -> Any:
+    """
+    Enable to "await" a blocking I/O callable from an asyncio coroutine
 
-# ##################### Rome suggesting functions V2
-# ##################################################
+    Args:
+        func: The regular blocking callable (function, method)
+        args: Positional arguments transmitted to ``func``
+        kwargs: Keyword arguments transmitted to ``func``
+
+    Returns:
+        Anything that's returned by ``func``
+    """
+    loop = asyncio.get_running_loop()
+    new_func = functools.partial(func, *args, **kwargs)
+    result = await loop.run_in_executor(_awaitable_blocking_pool, new_func)
+    return result
